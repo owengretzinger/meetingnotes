@@ -40,6 +40,9 @@ struct MeetingListView: View {
             .navigationDestination(for: Meeting.self) { meeting in
                 MeetingDetailView(meeting: meeting)
             }
+            .onAppear {
+                viewModel.loadMeetings()
+            }
         }
         .overlay {
             if viewModel.isLoading {
@@ -54,8 +57,19 @@ struct MeetingRowView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(meeting.date, style: .date)
-                .font(.headline)
+            // Show title if exists, otherwise show date
+            if !meeting.title.isEmpty {
+                Text(meeting.title)
+                    .font(.headline)
+                    .lineLimit(1)
+                
+                Text(meeting.date, style: .date)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                Text(meeting.date, style: .date)
+                    .font(.headline)
+            }
             
             if !meeting.transcript.isEmpty {
                 Text(meeting.transcript)

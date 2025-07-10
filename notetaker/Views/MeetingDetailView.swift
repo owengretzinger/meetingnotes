@@ -121,6 +121,9 @@ struct MeetingDetailView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
+        .onDisappear {
+            viewModel.saveMeeting()
+        }
     }
     
     // MARK: - Content Views

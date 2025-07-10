@@ -2,6 +2,11 @@ import Foundation
 import SwiftUI
 import Combine
 
+// Add notification name for meeting saved events
+extension Notification.Name {
+    static let meetingSaved = Notification.Name("MeetingSaved")
+}
+
 enum MeetingViewTab: String, CaseIterable {
     case myNotes = "My Notes"
     case transcript = "Transcript"
@@ -27,7 +32,14 @@ class MeetingViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     init(meeting: Meeting = Meeting()) {
-        self.meeting = meeting
+        // Load the latest version of the meeting from storage if it exists
+        if let savedMeeting = LocalStorageManager.shared.loadMeetings().first(where: { $0.id == meeting.id }) {
+            print("🔄 Loading latest version of meeting: \(meeting.id)")
+            self.meeting = savedMeeting
+        } else {
+            print("🆕 Using provided meeting: \(meeting.id)")
+            self.meeting = meeting
+        }
         
         // Update meeting transcript chunks when audio manager transcript chunks change
         audioManager.$transcriptChunks
@@ -47,7 +59,8 @@ class MeetingViewModel: ObservableObject {
         // Auto-save when meeting properties change
         $meeting
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
-            .sink { [weak self] _ in
+            .sink { [weak self] meeting in
+                print("🔄 Auto-saving meeting: \(meeting.id) - title: '\(meeting.title)', notes: '\(meeting.userNotes.prefix(50))...'")
                 self?.saveMeeting()
             }
             .store(in: &cancellables)
@@ -116,7 +129,12 @@ class MeetingViewModel: ObservableObject {
     }
     
     func saveMeeting() {
-        _ = LocalStorageManager.shared.saveMeeting(meeting)
+        print("💾 Saving meeting: \(meeting.id)")
+        let success = LocalStorageManager.shared.saveMeeting(meeting)
+        print("💾 Save result: \(success ? "SUCCESS" : "FAILED")")
+        if success {
+            NotificationCenter.default.post(name: .meetingSaved, object: meeting)
+        }
     }
     
     func copyTranscript() {
