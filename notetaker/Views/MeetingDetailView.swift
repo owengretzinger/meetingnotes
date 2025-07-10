@@ -30,6 +30,8 @@ struct CollapsedTranscriptChunkView: View {
 
 struct MeetingDetailView: View {
     @StateObject private var viewModel: MeetingViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var showDeleteAlert = false
     
     init(meeting: Meeting) {
         self._viewModel = StateObject(wrappedValue: MeetingViewModel(meeting: meeting))
@@ -37,12 +39,33 @@ struct MeetingDetailView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Meeting Title
-            TextField("Meeting Title", text: $viewModel.meeting.title)
-                .font(.title2)
-                .fontWeight(.semibold)
-                .textFieldStyle(.plain)
-                .padding(.bottom, 10)
+            // Meeting Title with Menu
+            HStack {
+                TextField("Meeting Title", text: $viewModel.meeting.title)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .textFieldStyle(.plain)
+                
+                Spacer()
+                
+                // Ellipsis menu
+                Menu {
+                    Button("Delete Meeting", role: .destructive) {
+                        showDeleteAlert = true
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 12, height: 12)
+                        .foregroundColor(.secondary)
+                }
+                .labelStyle(.iconOnly)
+                .menuIndicator(.hidden)
+                .menuStyle(BorderlessButtonMenuStyle())
+                .frame(width: 20, height: 20)
+            }
+            .padding(.bottom, 10)
             
             // Controls Section
             HStack {
@@ -120,6 +143,15 @@ struct MeetingDetailView: View {
             }
         } message: {
             Text(viewModel.errorMessage ?? "")
+        }
+        .alert("Delete Meeting", isPresented: $showDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                viewModel.deleteMeeting()
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete this meeting? This action cannot be undone.")
         }
         .onDisappear {
             viewModel.saveMeeting()

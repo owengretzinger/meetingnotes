@@ -5,6 +5,7 @@ import Combine
 // Add notification name for meeting saved events
 extension Notification.Name {
     static let meetingSaved = Notification.Name("MeetingSaved")
+    static let meetingDeleted = Notification.Name("MeetingDeleted")
 }
 
 enum MeetingViewTab: String, CaseIterable {
@@ -27,6 +28,7 @@ class MeetingViewModel: ObservableObject {
     @Published var isRecording = false
     @Published var selectedTab: MeetingViewTab = .myNotes
     @Published var recordingState: RecordingState = .idle
+    @Published var isDeleted = false
     
     private let audioManager = AudioManager()
     private var cancellables = Set<AnyCancellable>()
@@ -129,6 +131,7 @@ class MeetingViewModel: ObservableObject {
     }
     
     func saveMeeting() {
+        if isDeleted { return }
         print("💾 Saving meeting: \(meeting.id)")
         let success = LocalStorageManager.shared.saveMeeting(meeting)
         print("💾 Save result: \(success ? "SUCCESS" : "FAILED")")
@@ -161,5 +164,13 @@ class MeetingViewModel: ObservableObject {
         }
         
         NSPasteboard.general.setString(content, forType: .string)
+    }
+    
+    func deleteMeeting() {
+        let success = LocalStorageManager.shared.deleteMeeting(meeting)
+        if success {
+            isDeleted = true
+            NotificationCenter.default.post(name: .meetingDeleted, object: meeting)
+        }
     }
 } 

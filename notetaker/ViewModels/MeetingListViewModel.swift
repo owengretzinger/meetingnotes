@@ -20,6 +20,13 @@ class MeetingListViewModel: ObservableObject {
                 self?.loadMeetings()
             }
             .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: .meetingDeleted)
+            .sink { [weak self] _ in
+                print("🔔 Meeting deleted notification received. Reloading meetings list...")
+                self?.loadMeetings()
+            }
+            .store(in: &cancellables)
     }
     
     func loadMeetings() {
