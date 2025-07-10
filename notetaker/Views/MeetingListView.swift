@@ -14,14 +14,23 @@ struct MeetingListView: View {
                         description: Text("Start a new meeting to begin transcribing")
                     )
                 } else {
-                    ForEach(viewModel.meetings) { meeting in
-                        NavigationLink(value: meeting) {
-                            MeetingRowView(meeting: meeting)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        for index in indexSet {
-                            viewModel.deleteMeeting(viewModel.meetings[index])
+                    ForEach(groupedMeetings, id: \.day) { dayGroup in
+                        Section {
+                            ForEach(dayGroup.meetings) { meeting in
+                                NavigationLink(value: meeting) {
+                                    MeetingRowView(meeting: meeting)
+                                }
+                            }
+                            .onDelete { indexSet in
+                                for index in indexSet {
+                                    viewModel.deleteMeeting(dayGroup.meetings[index])
+                                }
+                            }
+                        } header: {
+                            Text(dayGroup.day)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
                         }
                     }
                 }
@@ -50,38 +59,74 @@ struct MeetingListView: View {
             }
         }
     }
+    
+    private var groupedMeetings: [DayGroup] {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        let grouped = Dictionary(grouping: viewModel.meetings) { meeting in
+            calendar.startOfDay(for: meeting.date)
+        }
+        
+        return grouped.map { (date, meetings) in
+            let dayString: String
+            
+            if calendar.isDateInToday(date) {
+                dayString = "Today"
+            } else if calendar.isDateInYesterday(date) {
+                dayString = "Yesterday"
+            } else if calendar.isDate(date, equalTo: now, toGranularity: .weekOfYear) {
+                dayString = date.formatted(.dateTime.weekday(.wide))
+            } else {
+                dayString = date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
+            }
+            
+            return DayGroup(day: dayString, date: date, meetings: meetings.sorted { $0.date > $1.date })
+        }.sorted { $0.date > $1.date }
+    }
+}
+
+struct DayGroup {
+    let day: String
+    let date: Date
+    let meetings: [Meeting]
 }
 
 struct MeetingRowView: View {
     let meeting: Meeting
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Show title if exists, otherwise show date
-            if !meeting.title.isEmpty {
-                Text(meeting.title)
+        HStack {
+            VStack(alignment: .leading, spacing: 6) {
+                // Title or default
+                Text(meeting.title.isEmpty ? "Untitled meeting" : meeting.title)
                     .font(.headline)
                     .lineLimit(1)
                 
-                Text(meeting.date, style: .date)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            } else {
-                Text(meeting.date, style: .date)
-                    .font(.headline)
+                // Notes preview or placeholder
+                HStack {
+                    if !meeting.generatedNotes.isEmpty {
+                        Text(meeting.generatedNotes.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespacesAndNewlines))
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    } else {
+                        Text("No notes yet")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .italic()
+                    }
+                    Spacer()
+                }
+                .padding(.trailing, 20)
             }
             
-            if !meeting.transcript.isEmpty {
-                Text(meeting.transcript)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-            } else {
-                Text("No transcript")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .italic()
-            }
+            Spacer()
+            
+            // Date on the right
+            Text(meeting.date, style: .time)
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
         .padding(.vertical, 4)
     }
