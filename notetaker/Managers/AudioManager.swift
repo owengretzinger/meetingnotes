@@ -6,11 +6,10 @@ import Foundation
 import SwiftUI
 import ScreenCaptureKit
 
-/// Manages audio capture from microphone and/or system audio and handles real-time transcription via Deepgram
+/// Manages audio capture from microphone and system audio and handles real-time transcription via Deepgram
 class AudioManager: NSObject, ObservableObject {
     @Published var transcriptChunks: [TranscriptChunk] = []
     @Published var isRecording = false
-    @Published var captureSystemAudio = true
     
     private var audioEngine = AVAudioEngine()
     private var micSocketTask: URLSessionWebSocketTask?
@@ -26,15 +25,14 @@ class AudioManager: NSObject, ObservableObject {
         // First ensure everything is stopped and cleaned up
         stopRecordingInternal()
         
-        if captureSystemAudio {
+        // Add a small delay to ensure cleanup is complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             // Start microphone capture in parallel with system audio
-            startMicrophoneTap()
+            self.startMicrophoneTap()
             // Start system audio capture asynchronously
             Task {
-                await startSystemAudioCapture()
+                await self.startSystemAudioCapture()
             }
-        } else {
-            startMicrophoneOnly()
         }
     }
     
@@ -65,85 +63,71 @@ class AudioManager: NSObject, ObservableObject {
         print("Internal cleanup completed")
     }
     
-    private func startMicrophoneOnly() {
-        print("Starting microphone-only recording...")
-        
-        // Ensure audio engine is stopped and cleaned up
-        cleanupAudioEngine()
-        
-        // Set up audio engine for microphone capture
-        let inputNode = audioEngine.inputNode
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
-        
-        // Convert to the format Deepgram expects: 16kHz, 16-bit, mono
-        let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16, 
-                                       sampleRate: 16000, 
-                                       channels: 1, 
-                                       interleaved: false)!
-        
-        let converter = AVAudioConverter(from: recordingFormat, to: targetFormat)!
-        
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] (buffer, time) in
-            self?.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .mic)
-        }
-        
-        audioEngine.prepare()
-        
-        do {
-            try audioEngine.start()
-            DispatchQueue.main.async {
-                self.isRecording = true
-            }
-            connectToDeepgram(source: .mic)
-            print("Microphone recording started")
-        } catch {
-            print("Failed to start audio engine: \(error)")
-        }
-    }
+
     
     /// Starts a microphone tap without creating a new Deepgram connection (used when also capturing system audio)
     private func startMicrophoneTap() {
-        // Ensure audio engine is stopped and cleaned up
-        cleanupAudioEngine()
-
-        let inputNode = audioEngine.inputNode
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
-
-        let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16,
-                                         sampleRate: 16000,
-                                         channels: 1,
-                                         interleaved: false)!
-
-        let converter = AVAudioConverter(from: recordingFormat, to: targetFormat)!
-
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
-            // Debug mic RMS
-            if let ch = buffer.floatChannelData?[0] {
-                let frameCount = Int(buffer.frameLength)
-                let samples = UnsafeBufferPointer(start: ch, count: frameCount)
-                let rms = sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(frameCount))
-                print("🎤 Mic RMS: \(rms)")
-            }
-            self?.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .mic)
-        }
-
-        audioEngine.prepare()
-
+        print("🎤 Starting microphone tap...")
+        
         do {
+            let inputNode = audioEngine.inputNode
+            let recordingFormat = inputNode.outputFormat(forBus: 0)
+
+            guard let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16,
+                                             sampleRate: 16000,
+                                             channels: 1,
+                                             interleaved: false) else {
+                print("❌ Failed to create target audio format for mic tap")
+                return
+            }
+
+            guard let converter = AVAudioConverter(from: recordingFormat, to: targetFormat) else {
+                print("❌ Failed to create audio converter for mic tap")
+                return
+            }
+
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
+                // Debug mic RMS
+                if let ch = buffer.floatChannelData?[0] {
+                    let frameCount = Int(buffer.frameLength)
+                    let samples = UnsafeBufferPointer(start: ch, count: frameCount)
+                    let rms = sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(frameCount))
+                    print("🎤 Mic RMS: \(rms)")
+                }
+                self?.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .mic)
+            }
+
+            audioEngine.prepare()
             try audioEngine.start()
             connectToDeepgram(source: .mic)
+            print("✅ Microphone tap started successfully")
+            
         } catch {
-            print("Failed to start microphone tap: \(error)")
+            print("❌ Failed to start microphone tap: \(error)")
         }
     }
     
     private func cleanupAudioEngine() {
+        print("🧹 Cleaning up audio engine...")
+        
+        // Stop the engine first
         if audioEngine.isRunning {
             audioEngine.stop()
+            print("⏹️ Audio engine stopped")
         }
         
-        // Reset the audio engine - this safely removes all taps
+        // Remove any existing taps on the input node
+        let inputNode = audioEngine.inputNode
+        inputNode.removeTap(onBus: 0)
+        print("🔇 Input tap removed")
+        
+        // Reset the audio engine - this removes all connections and taps
         audioEngine.reset()
+        print("🔄 Audio engine reset")
+        
+        // Create a fresh audio engine to ensure clean state
+        audioEngine = AVAudioEngine()
+        print("✨ Fresh audio engine created")
     }
     
     private func startSystemAudioCapture() async {
@@ -160,7 +144,6 @@ class AudioManager: NSObject, ObservableObject {
             
             guard let display = content.displays.first else {
                 print("❌ No display found")
-                startMicrophoneOnly()
                 return
             }
             
@@ -203,9 +186,6 @@ class AudioManager: NSObject, ObservableObject {
             if case SCStreamError.userDeclined = error {
                 print("📍 Permission denied. User needs to enable screen recording in System Settings.")
             }
-            
-            // Fallback to microphone only
-            startMicrophoneOnly()
         }
     }
     

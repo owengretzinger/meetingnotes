@@ -30,10 +30,7 @@ class MeetingViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    var captureSystemAudio: Bool {
-        get { audioManager.captureSystemAudio }
-        set { audioManager.captureSystemAudio = newValue }
-    }
+
     
     func startRecording() {
         audioManager.startRecording()

@@ -39,9 +39,6 @@ struct MeetingDetailView: View {
         VStack(spacing: 20) {
             // Recording Controls
             VStack(spacing: 12) {
-                Toggle("Capture System Audio", isOn: $viewModel.captureSystemAudio)
-                    .disabled(viewModel.isRecording)
-                
                 HStack {
                     Button {
                         viewModel.startRecording()
