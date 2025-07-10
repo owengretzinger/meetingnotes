@@ -1,10 +1,66 @@
 import SwiftUI
 
+struct TranscriptChunkView: View {
+    let chunk: TranscriptChunk
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            // Source indicator
+            HStack(spacing: 4) {
+                Image(systemName: chunk.source.icon)
+                    .font(.caption)
+                    .foregroundColor(chunk.source == .mic ? .blue : .orange)
+                
+                Text(chunk.source.rawValue)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(chunk.source == .mic ? .blue : .orange)
+            }
+            .frame(width: 60, alignment: .leading)
+            
+            // Transcript text
+            Text(chunk.text)
+                .font(.body)
+                .foregroundColor(chunk.isFinal ? .primary : .secondary)
+                .italic(!chunk.isFinal)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.vertical, 2)
+        .opacity(chunk.isFinal ? 1.0 : 0.7)
+    }
+}
+
 struct MeetingDetailView: View {
     @StateObject private var viewModel: MeetingViewModel
+    @State private var selectedTranscriptFilter: TranscriptFilter = .all
     
     init(meeting: Meeting) {
         self._viewModel = StateObject(wrappedValue: MeetingViewModel(meeting: meeting))
+    }
+    
+    enum TranscriptFilter: String, CaseIterable {
+        case all = "All"
+        case mic = "Microphone"
+        case system = "System Audio"
+        
+        var icon: String {
+            switch self {
+            case .all: return "waveform"
+            case .mic: return "mic.fill"
+            case .system: return "speaker.wave.2.fill"
+            }
+        }
+    }
+    
+    private var filteredTranscriptChunks: [TranscriptChunk] {
+        switch selectedTranscriptFilter {
+        case .all:
+            return viewModel.meeting.transcriptChunks
+        case .mic:
+            return viewModel.meeting.transcriptChunks.filter { $0.source == .mic }
+        case .system:
+            return viewModel.meeting.transcriptChunks.filter { $0.source == .system }
+        }
     }
     
     var body: some View {
@@ -49,17 +105,54 @@ struct MeetingDetailView: View {
                         Text("Live Transcript")
                             .font(.headline)
                         Spacer()
-                        Button {
-                            viewModel.copyTranscript()
+                        
+                        // Filter controls
+                        Picker("Filter", selection: $selectedTranscriptFilter) {
+                            ForEach(TranscriptFilter.allCases, id: \.self) { filter in
+                                Label(filter.rawValue, systemImage: filter.icon)
+                                    .tag(filter)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .frame(width: 200)
+                        
+                        Menu {
+                            Button {
+                                viewModel.copyTranscript()
+                            } label: {
+                                Label("Copy All", systemImage: "doc.on.doc")
+                            }
+                            
+                            Button {
+                                viewModel.copyMicTranscript()
+                            } label: {
+                                Label("Copy Microphone Only", systemImage: "mic.fill")
+                            }
+                            
+                            Button {
+                                viewModel.copySystemTranscript()
+                            } label: {
+                                Label("Copy System Audio Only", systemImage: "speaker.wave.2.fill")
+                            }
                         } label: {
                             Label("Copy", systemImage: "doc.on.doc")
                         }
                     }
                     
                     ScrollView {
-                        Text(viewModel.meeting.transcript.isEmpty ? "Transcript will appear here..." : viewModel.meeting.transcript)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        if filteredTranscriptChunks.isEmpty {
+                            Text("Transcript will appear here...")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .foregroundColor(.secondary)
+                        } else {
+                            LazyVStack(alignment: .leading, spacing: 4) {
+                                ForEach(filteredTranscriptChunks) { chunk in
+                                    TranscriptChunkView(chunk: chunk)
+                                }
+                            }
                             .padding()
+                        }
                     }
                     .frame(maxHeight: .infinity)
                     .background(Color.gray.opacity(0.05))

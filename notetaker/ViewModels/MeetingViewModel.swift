@@ -15,10 +15,10 @@ class MeetingViewModel: ObservableObject {
     init(meeting: Meeting = Meeting()) {
         self.meeting = meeting
         
-        // Update meeting transcript when audio manager transcript changes
-        audioManager.$transcript
-            .sink { [weak self] newTranscript in
-                self?.meeting.transcript = newTranscript
+        // Update meeting transcript chunks when audio manager transcript chunks change
+        audioManager.$transcriptChunks
+            .sink { [weak self] newChunks in
+                self?.meeting.transcriptChunks = newChunks
             }
             .store(in: &cancellables)
         
@@ -76,6 +76,16 @@ class MeetingViewModel: ObservableObject {
     func copyTranscript() {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(meeting.transcript, forType: .string)
+    }
+    
+    func copyMicTranscript() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(meeting.micTranscript, forType: .string)
+    }
+    
+    func copySystemTranscript() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(meeting.systemTranscript, forType: .string)
     }
     
     func copyNotes() {

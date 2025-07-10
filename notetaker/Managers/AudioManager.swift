@@ -6,15 +6,9 @@ import Foundation
 import SwiftUI
 import ScreenCaptureKit
 
-// Distinguish which source (mic vs system) an audio buffer belongs to
-private enum AudioSource {
-    case mic
-    case system
-}
-
 /// Manages audio capture from microphone and/or system audio and handles real-time transcription via Deepgram
 class AudioManager: NSObject, ObservableObject {
-    @Published var transcript = ""
+    @Published var transcriptChunks: [TranscriptChunk] = []
     @Published var isRecording = false
     @Published var captureSystemAudio = true
     
@@ -330,10 +324,27 @@ class AudioManager: NSObject, ObservableObject {
               let transcriptText = alt["transcript"] as? String,
               !transcriptText.isEmpty else { return }
 
-        let prefix = (source == .mic) ? "[MIC]" : "[SYS]"
+        let isFinal = json["is_final"] as? Bool ?? false
+        
         DispatchQueue.main.async {
-            if let isFinal = json["is_final"] as? Bool, isFinal {
-                self.transcript += "\(prefix) \(transcriptText) "
+            let chunk = TranscriptChunk(
+                timestamp: Date(),
+                source: source,
+                text: transcriptText,
+                isFinal: isFinal
+            )
+            
+            // For interim results, replace the last interim chunk from the same source
+            if !isFinal {
+                // Remove the last interim chunk from the same source
+                if let lastIndex = self.transcriptChunks.lastIndex(where: { !$0.isFinal && $0.source == source }) {
+                    self.transcriptChunks.remove(at: lastIndex)
+                }
+                self.transcriptChunks.append(chunk)
+            } else {
+                // For final results, remove any interim chunks from the same source and add the final chunk
+                self.transcriptChunks.removeAll { !$0.isFinal && $0.source == source }
+                self.transcriptChunks.append(chunk)
             }
         }
     }
