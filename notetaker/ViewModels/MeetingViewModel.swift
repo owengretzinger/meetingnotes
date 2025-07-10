@@ -75,17 +75,7 @@ class MeetingViewModel: ObservableObject {
     
     func copyTranscript() {
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(meeting.transcript, forType: .string)
-    }
-    
-    func copyMicTranscript() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(meeting.micTranscript, forType: .string)
-    }
-    
-    func copySystemTranscript() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(meeting.systemTranscript, forType: .string)
+        NSPasteboard.general.setString(meeting.formattedTranscript, forType: .string)
     }
     
     func copyNotes() {
