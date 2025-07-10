@@ -4,5 +4,7 @@
 <dict>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>Notetaker needs access to capture system audio for transcription.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>Notetaker needs screen recording permission to capture system audio for transcription.</string>
 </dict>
 </plist>
