@@ -36,130 +36,176 @@ struct MeetingDetailView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Recording Controls
-            VStack(spacing: 12) {
-                HStack {
-                    Button {
-                        viewModel.startRecording()
-                    } label: {
-                        Label("Start Recording", systemImage: "record.circle")
-                    }
-                    .disabled(viewModel.isRecording)
-                    .buttonStyle(.borderedProminent)
-                    
-                    Button {
-                        viewModel.stopRecording()
-                    } label: {
-                        Label("Stop Recording", systemImage: "stop.circle")
-                    }
-                    .disabled(!viewModel.isRecording)
-                    .buttonStyle(.bordered)
-                }
-                
-                if viewModel.isRecording {
-                    Label("Recording...", systemImage: "dot.radiowaves.left.and.right")
-                        .foregroundColor(.red)
-                }
-            }
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(10)
+        VStack(alignment: .leading, spacing: 20) {
+            // Meeting Title
+            TextField("Meeting Title", text: $viewModel.meeting.title)
+                .font(.title2)
+                .fontWeight(.semibold)
+                .textFieldStyle(.plain)
+                .padding(.bottom, 10)
             
-            // Transcript and Notes
-            HStack(spacing: 20) {
-                // Transcript Column
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Live Transcript")
-                            .font(.headline)
-                        Spacer()
-                        Button {
-                            viewModel.copyTranscript()
-                        } label: {
-                            Label("Copy", systemImage: "doc.on.doc")
-                        }
-                    }
-                    
-                    ScrollView {
-                        if viewModel.meeting.collapsedTranscriptChunks.isEmpty {
-                            Text("Transcript will appear here...")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
-                                .foregroundColor(.secondary)
-                        } else {
-                            LazyVStack(alignment: .leading, spacing: 4) {
-                                ForEach(viewModel.meeting.collapsedTranscriptChunks) { chunk in
-                                    CollapsedTranscriptChunkView(chunk: chunk)
-                                }
+            // Controls Section
+            HStack {
+                // Left: Tab Toggles
+                HStack(spacing: 20) {
+                    ForEach(MeetingViewTab.allCases, id: \.self) { tab in
+                        Button(action: {
+                            viewModel.selectedTab = tab
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: viewModel.selectedTab == tab ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(viewModel.selectedTab == tab ? .accentColor : .secondary)
+                                
+                                Text(tab.rawValue)
+                                    .foregroundColor(viewModel.selectedTab == tab ? .primary : .secondary)
                             }
-                            .padding()
                         }
+                        .buttonStyle(.plain)
                     }
-                    .frame(maxHeight: .infinity)
-                    .background(Color.gray.opacity(0.05))
-                    .cornerRadius(8)
                 }
                 
-                // Notes Column
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Your Notes")
-                        .font(.headline)
-                    
-                    TextEditor(text: $viewModel.meeting.userNotes)
-                        .font(.body)
-                        .scrollContentBackground(.hidden)
-                        .background(Color.gray.opacity(0.05))
+                Spacer()
+                
+                // Right: Recording and Copy Buttons
+                HStack(spacing: 12) {
+                    Button(action: {
+                        viewModel.toggleRecording()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: viewModel.recordingState == .recording ? "stop.circle.fill" : "record.circle")
+                                .foregroundColor(viewModel.recordingState == .recording ? .red : .accentColor)
+                            Text(viewModel.recordingButtonText)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(viewModel.recordingState == .recording ? Color.red.opacity(0.1) : Color.accentColor.opacity(0.1))
                         .cornerRadius(8)
-                }
-            }
-            .frame(maxHeight: 300)
-            
-            // Generated Notes Section
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Generated Notes")
-                        .font(.headline)
-                    Spacer()
-                    
-                    if viewModel.isGeneratingNotes {
-                        ProgressView()
-                            .scaleEffect(0.7)
-                    } else {
-                        Button {
-                            Task {
-                                await viewModel.generateNotes()
-                            }
-                        } label: {
-                            Label("Generate", systemImage: "sparkles")
-                        }
-                        .disabled(viewModel.meeting.transcript.isEmpty)
-                        
-                        Button {
-                            viewModel.copyNotes()
-                        } label: {
-                            Label("Copy", systemImage: "doc.on.doc")
-                        }
-                        .disabled(viewModel.meeting.generatedNotes.isEmpty)
                     }
+                    .buttonStyle(.plain)
+                    
+                    Button(action: {
+                        viewModel.copyCurrentTabContent()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "doc.on.doc")
+                            Text("Copy")
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
                 }
-                
-                TextEditor(text: $viewModel.meeting.generatedNotes)
-                    .font(.body)
-                    .scrollContentBackground(.hidden)
-                    .background(Color.gray.opacity(0.05))
-                    .cornerRadius(8)
-                    .frame(minHeight: 150)
             }
+            
+            // Content Area
+            VStack(alignment: .leading, spacing: 8) {
+                switch viewModel.selectedTab {
+                case .myNotes:
+                    myNotesView
+                case .transcript:
+                    transcriptView
+                case .enhancedNotes:
+                    enhancedNotesView
+                }
+            }
+            .frame(maxHeight: .infinity)
         }
         .padding()
-        .navigationTitle("Meeting Notes")
+        .navigationTitle("")
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
             }
         } message: {
             Text(viewModel.errorMessage ?? "")
+        }
+    }
+    
+    // MARK: - Content Views
+    
+    private var myNotesView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("My Notes")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            TextEditor(text: $viewModel.meeting.userNotes)
+                .font(.body)
+                .scrollContentBackground(.hidden)
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(8)
+                .frame(maxHeight: .infinity)
+        }
+    }
+    
+    private var transcriptView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Transcript")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            ScrollView {
+                if viewModel.meeting.collapsedTranscriptChunks.isEmpty {
+                    Text("Transcript will appear here...")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .foregroundColor(.secondary)
+                } else {
+                    LazyVStack(alignment: .leading, spacing: 4) {
+                        ForEach(viewModel.meeting.collapsedTranscriptChunks) { chunk in
+                            CollapsedTranscriptChunkView(chunk: chunk)
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .frame(maxHeight: .infinity)
+            .background(Color.gray.opacity(0.05))
+            .cornerRadius(8)
+        }
+    }
+    
+    private var enhancedNotesView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Enhanced Notes")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                if viewModel.isGeneratingNotes {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                } else {
+                    Button(action: {
+                        Task {
+                            await viewModel.generateNotes()
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "sparkles")
+                            Text("Generate")
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.accentColor.opacity(0.1))
+                        .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(viewModel.meeting.transcript.isEmpty)
+                }
+            }
+            
+            TextEditor(text: $viewModel.meeting.generatedNotes)
+                .font(.body)
+                .scrollContentBackground(.hidden)
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(8)
+                .frame(maxHeight: .infinity)
         }
     }
 }

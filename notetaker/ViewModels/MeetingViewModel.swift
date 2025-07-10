@@ -2,12 +2,26 @@ import Foundation
 import SwiftUI
 import Combine
 
+enum MeetingViewTab: String, CaseIterable {
+    case myNotes = "My Notes"
+    case transcript = "Transcript"
+    case enhancedNotes = "Enhanced Notes"
+}
+
+enum RecordingState {
+    case idle // Not recording, shows "Transcribe"
+    case recording // Recording, shows "Stop"
+    case paused // Paused, shows "Resume"
+}
+
 @MainActor
 class MeetingViewModel: ObservableObject {
     @Published var meeting: Meeting
     @Published var isGeneratingNotes = false
     @Published var errorMessage: String?
     @Published var isRecording = false
+    @Published var selectedTab: MeetingViewTab = .myNotes
+    @Published var recordingState: RecordingState = .idle
     
     private let audioManager = AudioManager()
     private var cancellables = Set<AnyCancellable>()
@@ -26,11 +40,46 @@ class MeetingViewModel: ObservableObject {
         audioManager.$isRecording
             .sink { [weak self] isRecording in
                 self?.isRecording = isRecording
+                self?.updateRecordingState()
+            }
+            .store(in: &cancellables)
+        
+        // Auto-save when meeting properties change
+        $meeting
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.saveMeeting()
             }
             .store(in: &cancellables)
     }
     
-
+    private func updateRecordingState() {
+        if isRecording {
+            recordingState = .recording
+        } else if recordingState == .recording {
+            recordingState = .paused
+        }
+    }
+    
+    var recordingButtonText: String {
+        switch recordingState {
+        case .idle:
+            return "Transcribe"
+        case .recording:
+            return "Stop"
+        case .paused:
+            return "Resume"
+        }
+    }
+    
+    func toggleRecording() {
+        switch recordingState {
+        case .idle, .paused:
+            startRecording()
+        case .recording:
+            stopRecording()
+        }
+    }
     
     func startRecording() {
         audioManager.startRecording()
@@ -78,5 +127,21 @@ class MeetingViewModel: ObservableObject {
     func copyNotes() {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(meeting.generatedNotes, forType: .string)
+    }
+    
+    func copyCurrentTabContent() {
+        NSPasteboard.general.clearContents()
+        
+        let content: String
+        switch selectedTab {
+        case .myNotes:
+            content = meeting.userNotes
+        case .transcript:
+            content = meeting.formattedTranscript
+        case .enhancedNotes:
+            content = meeting.generatedNotes
+        }
+        
+        NSPasteboard.general.setString(content, forType: .string)
     }
 } 

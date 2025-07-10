@@ -65,17 +65,20 @@ struct CollapsedTranscriptChunk: Identifiable {
 struct Meeting: Codable, Identifiable, Hashable {
     let id: UUID
     let date: Date
+    var title: String
     var transcriptChunks: [TranscriptChunk]
     var userNotes: String
     var generatedNotes: String
     
     init(id: UUID = UUID(), 
-         date: Date = Date(), 
+         date: Date = Date(),
+         title: String = "",
          transcriptChunks: [TranscriptChunk] = [],
          userNotes: String = "", 
          generatedNotes: String = "") {
         self.id = id
         self.date = date
+        self.title = title
         self.transcriptChunks = transcriptChunks
         self.userNotes = userNotes
         self.generatedNotes = generatedNotes
