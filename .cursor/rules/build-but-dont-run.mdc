@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+After making changes, ensure there are no errors by creating an Xcode build. 
+
+However, don't run the app, I'll do that myself.

@@ -1,0 +1,20 @@
+---
+alwaysApply: true
+---
+I want to build an open source version of Granola
+
+It will be a meeting notetaking macOS application
+
+Basically it will use your mic and system audio, create a live transcript, and then at the end of the meeting use the transcript + any notes you write in a notepad to generate the meeting notes, with a button to quickly copy the notes or transcript. Can also edit the resulting notes
+
+The user will provide their own deepgram and openai API keys (stored locally) for transcription and AI generation
+
+The user will also be able to modify the system prompt in addition to just being able to write a blurb about themself (that gets injected into the system prompt)
+
+All data will be stored locally on the device
+
+That will be great for the MVP to start. Later on I will add additional features such as:
+- connecting to your Google calendar
+- note templates
+- AI chat for asking questions about a meeting
+- Integrations for email, slack, etc.
