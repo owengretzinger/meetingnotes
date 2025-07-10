@@ -6,49 +6,110 @@ struct SettingsView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section("API Keys") {
-                    SecureField("Deepgram API Key", text: $viewModel.settings.deepgramKey)
-                        .textFieldStyle(.roundedBorder)
-                    
-                    SecureField("OpenAI API Key", text: $viewModel.settings.openAIKey)
-                        .textFieldStyle(.roundedBorder)
-                }
-                
-                Section("Personal Information") {
-                    VStack(alignment: .leading) {
-                        Text("About Yourself")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        TextEditor(text: $viewModel.settings.userBlurb)
-                            .frame(minHeight: 80)
-                            .scrollContentBackground(.hidden)
-                            .background(Color.gray.opacity(0.05))
-                            .cornerRadius(8)
+            ScrollView {
+                VStack(spacing: 32) {
+                    // API Keys Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("API Keys")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        VStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Deepgram API Key")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                SecureField("Enter your Deepgram API key", text: $viewModel.settings.deepgramKey)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("OpenAI API Key")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                SecureField("Enter your OpenAI API key", text: $viewModel.settings.openAIKey)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
                     }
-                }
-                
-                Section("AI Generation") {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("System Prompt")
+                    .padding(.horizontal, 24)
+                    
+                    Divider()
+                        .padding(.horizontal, 24)
+                    
+                    // Personal Information Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Personal Information")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("About Yourself")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Text("This information will be included in the AI context when generating meeting notes.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                            
+                            TextEditor(text: $viewModel.settings.userBlurb)
+                                .frame(minHeight: 80, maxHeight: 120)
+                                .scrollContentBackground(.hidden)
+                                .background(Color(.controlBackgroundColor))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(.separatorColor), lineWidth: 1)
+                                )
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    
+                    Divider()
+                        .padding(.horizontal, 24)
+                    
+                    // AI Generation Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text("AI Generation")
+                                .font(.headline)
+                                .fontWeight(.semibold)
                             Spacer()
                             Button("Reset to Default") {
                                 viewModel.resetToDefaults()
                             }
                             .font(.caption)
+                            .foregroundColor(.accentColor)
                         }
-                        TextEditor(text: $viewModel.settings.systemPrompt)
-                            .frame(minHeight: 120)
-                            .scrollContentBackground(.hidden)
-                            .background(Color.gray.opacity(0.05))
-                            .cornerRadius(8)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("System Prompt")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Text("Customize how the AI generates your meeting notes.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            TextEditor(text: $viewModel.settings.systemPrompt)
+                                .frame(minHeight: 100, maxHeight: 160)
+                                .scrollContentBackground(.hidden)
+                                .background(Color(.controlBackgroundColor))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(.separatorColor), lineWidth: 1)
+                                )
+                        }
                     }
+                    .padding(.horizontal, 24)
+                    
+                    Spacer(minLength: 20)
                 }
+                .padding(.vertical, 24)
             }
             .navigationTitle("Settings")
+            .frame(minWidth: 600, minHeight: 500)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -61,23 +122,12 @@ struct SettingsView: View {
                         viewModel.saveSettings()
                     }
                     .disabled(viewModel.isSaving)
+                    .buttonStyle(.borderedProminent)
                 }
             }
-            .overlay {
-                if viewModel.saveSuccessful {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Settings saved successfully")
-                        }
-                        .padding()
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(10)
-                        .padding()
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            .onChange(of: viewModel.saveSuccessful) { _, isSuccessful in
+                if isSuccessful {
+                    dismiss()
                 }
             }
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
