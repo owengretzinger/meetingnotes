@@ -35,7 +35,11 @@ Later:
 
 ## Local Development
 
-Open the project in Xcode
+Open the project in Xcode.
+
+For faster development builds, ensure `ONLY_ACTIVE_ARCH = YES` is set in your Debug configuration (this is already set by default). This builds only for your current architecture, speeding up compilation.
+
+For distribution builds that need to support both Intel and Apple Silicon Macs, the release process automatically uses `ONLY_ACTIVE_ARCH = NO` to create universal binaries.
 
 ## Releasing a New Version
 
