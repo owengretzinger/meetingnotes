@@ -10,15 +10,13 @@ class NotesGenerator {
     
     private init() {}
     
-    /// Generates meeting notes from transcript and user notes
+    /// Generates meeting notes from meeting data using template-based system prompt
     /// - Parameters:
-    ///   - transcript: The meeting transcript
-    ///   - userNotes: Additional notes from the user
+    ///   - meeting: The meeting object containing all necessary data
     ///   - userBlurb: Information about the user for context
-    ///   - systemPrompt: The system prompt for AI generation
+    ///   - systemPrompt: The system prompt template with placeholders
     /// - Returns: Generated meeting notes
-    func generateNotes(transcript: String,
-                      userNotes: String,
+    func generateNotes(meeting: Meeting,
                       userBlurb: String,
                       systemPrompt: String) async throws -> String {
         
@@ -28,15 +26,27 @@ class NotesGenerator {
         
         let openAI = OpenAI(apiToken: apiKey)
         
-        // Compose system prompt with user blurb wrapped in XML tags for clarity
-        let systemContent = "\(systemPrompt)\n\n<user_blurb>\n\(userBlurb)\n</user_blurb>"
+        // Create date formatter for meeting date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .full
+        dateFormatter.timeStyle = .short
+        
+        // Prepare template variables
+        let templateVariables: [String: String] = [
+            "meeting_title": meeting.title.isEmpty ? "Untitled Meeting" : meeting.title,
+            "meeting_date": dateFormatter.string(from: meeting.date),
+            "transcript": meeting.formattedTranscript,
+            "user_blurb": userBlurb,
+            "user_notes": meeting.userNotes
+        ]
+        
+        // Process the system prompt template
+        let systemContent = Settings.processTemplate(systemPrompt, with: templateVariables)
         let systemMessage = ChatQuery.ChatCompletionMessageParam(role: .system, content: systemContent)!
-        
-        // Provide the model with structured XML-tagged input variables for improved parsing
-        let userContent = "<task>Generate concise and well-structured meeting notes using the information below.</task>\n\n<transcript>\n\(transcript)\n</transcript>\n\n<user_notes>\n\(userNotes)\n</user_notes>"
-        let userMessage = ChatQuery.ChatCompletionMessageParam(role: .user, content: userContent)!
-        
-        let query = ChatQuery(messages: [systemMessage, userMessage], model: .gpt4_1_mini)
+
+        print(systemContent)
+    
+        let query = ChatQuery(messages: [systemMessage], model: .gpt4_1)
         
         let result = try await openAI.chats(query: query)
         

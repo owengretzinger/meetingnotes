@@ -26,6 +26,15 @@ class SettingsViewModel: ObservableObject {
         errorMessage = nil
         saveSuccessful = false
         
+        // Validate system prompt template before saving
+        let validation = settings.validateSystemPrompt()
+        if !validation.isValid {
+            let missingVars = validation.missingVariables.joined(separator: ", ")
+            errorMessage = "System prompt is missing required variables: \(missingVars). Please include these variables in your template using double curly braces (e.g., {{transcript}})."
+            isSaving = false
+            return
+        }
+        
         // Save to Keychain
         let deepgramSaved = KeychainHelper.shared.save(settings.deepgramKey, forKey: "deepgramKey")
         let openAISaved = KeychainHelper.shared.save(settings.openAIKey, forKey: "openAIKey")

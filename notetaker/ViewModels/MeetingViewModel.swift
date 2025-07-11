@@ -118,10 +118,8 @@ class MeetingViewModel: ObservableObject {
             let userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
             let systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt
             
-            // Generate notes
             meeting.generatedNotes = try await NotesGenerator.shared.generateNotes(
-                transcript: meeting.transcript,
-                userNotes: meeting.userNotes,
+                meeting: meeting,
                 userBlurb: userBlurb,
                 systemPrompt: systemPrompt
             )
