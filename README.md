@@ -21,13 +21,14 @@ Implemented:
 
 Todo:
 
-- Auto migration of meeting files (incase of format changes)
+- Markdown formatting
+- Auto generate notes when recording is stopped
+- Different note templates
 
 Later:
 
 - Cool recording indicator (dancing bars)
 - Connecting to your Google calendar
-- Different note templates
 - AI chat for asking questions about a meeting
 - Ability to use different models
 - Ability to use different STT providers
