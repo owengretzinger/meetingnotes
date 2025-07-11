@@ -6,5 +6,7 @@
 	<string>Notetaker needs access to capture system audio for transcription.</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Notetaker needs screen recording permission to capture system audio for transcription.</string>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/owengretzinger/notetaker/main/appcast.xml</string>
 </dict>
 </plist>
