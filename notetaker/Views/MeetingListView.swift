@@ -8,32 +8,35 @@ struct MeetingListView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             List {
+                // Only render meeting sections when there are meetings or loading state
+                ForEach(groupedMeetings, id: \.day) { dayGroup in
+                    Section {
+                        ForEach(dayGroup.meetings) { meeting in
+                            NavigationLink(value: meeting) {
+                                MeetingRowView(meeting: meeting)
+                            }
+                        }
+                        .onDelete { indexSet in
+                            for index in indexSet {
+                                viewModel.deleteMeeting(dayGroup.meetings[index])
+                            }
+                        }
+                    } header: {
+                        Text(dayGroup.day)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                    }
+                }
+            }
+            .overlay {
                 if viewModel.filteredMeetings.isEmpty && !viewModel.isLoading {
                     ContentUnavailableView(
                         viewModel.searchText.isEmpty ? "No Meetings Yet" : "No Results",
                         systemImage: viewModel.searchText.isEmpty ? "mic.slash" : "magnifyingglass",
                         description: Text(viewModel.searchText.isEmpty ? "Start a new meeting to begin transcribing" : "Try a different search term")
                     )
-                } else {
-                    ForEach(groupedMeetings, id: \.day) { dayGroup in
-                        Section {
-                            ForEach(dayGroup.meetings) { meeting in
-                                NavigationLink(value: meeting) {
-                                    MeetingRowView(meeting: meeting)
-                                }
-                            }
-                            .onDelete { indexSet in
-                                for index in indexSet {
-                                    viewModel.deleteMeeting(dayGroup.meetings[index])
-                                }
-                            }
-                        } header: {
-                            Text(dayGroup.day)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(.primary)
-                        }
-                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .navigationTitle("Meetings")
