@@ -43,6 +43,10 @@ class MeetingViewModel: ObservableObject {
             self.meeting = meeting
         }
         
+        // NEW: Seed the audio manager with any existing transcript chunks so the initial
+        // published value doesn't overwrite the saved transcript with an empty array.
+        audioManager.transcriptChunks = self.meeting.transcriptChunks
+        
         // Update meeting transcript chunks when audio manager transcript chunks change
         audioManager.$transcriptChunks
             .sink { [weak self] newChunks in
