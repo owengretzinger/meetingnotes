@@ -25,10 +25,11 @@ class AudioManager: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(handleAudioEngineConfigurationChange),
-                                               name: .AVAudioEngineConfigurationChange,
-                                               object: audioEngine)
+        NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange,
+                                               object: audioEngine,
+                                               queue: .main) { [weak self] _ in
+            self?.handleAudioEngineConfigurationChange()
+        }
     }
 
     deinit {
@@ -260,7 +261,7 @@ class AudioManager: NSObject, ObservableObject {
     }
     
     private func processAudioBuffer(_ buffer: AVAudioPCMBuffer, converter: AVAudioConverter, targetFormat: AVAudioFormat, source: AudioSource) {
-        var processBuffer = buffer
+        let processBuffer = buffer
         
         // Convert to target format (16kHz int16 mono) in a single step – AVAudioConverter will handle resampling and downmixing
         let outputFrameCapacity = AVAudioFrameCount(Double(processBuffer.frameLength) * targetFormat.sampleRate / processBuffer.format.sampleRate)
@@ -385,6 +386,11 @@ class AudioManager: NSObject, ObservableObject {
             }
         }
     }
+    
+    private func handleAudioEngineConfigurationChange() {
+        print("🔔 Audio engine configuration changed - restarting mic")
+        restartMicrophone()
+    }
 }
 
 // MARK: - SCStreamDelegate & SCStreamOutput
@@ -425,9 +431,4 @@ extension CMSampleBuffer {
             return AVAudioPCMBuffer(pcmFormat: format, bufferListNoCopy: audioBufferList.unsafePointer)
         }
     }
-} 
-
-@objc private func handleAudioEngineConfigurationChange(_ notification: Notification) {
-    print("🔔 Audio engine configuration changed - restarting mic")
-    restartMicrophone()
 } 
