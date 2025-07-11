@@ -17,11 +17,10 @@ Implemented:
 - Meeting search functionality
 - Abilty to edit system prompt
 - Use your own API key
+- Auto updates
 
 Todo:
 
-- Add license
-- Auto updates
 - Auto migration of meeting files (incase of format changes)
 
 Later:
