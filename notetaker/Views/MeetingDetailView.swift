@@ -70,22 +70,14 @@ struct MeetingDetailView: View {
             // Controls Section
             HStack {
                 // Left: Tab Toggles
-                HStack(spacing: 20) {
+                // Replace checkbox-style toggles with a native segmented control for a cleaner look
+                Picker("", selection: $viewModel.selectedTab) {
                     ForEach(MeetingViewTab.allCases, id: \.self) { tab in
-                        Button(action: {
-                            viewModel.selectedTab = tab
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: viewModel.selectedTab == tab ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(viewModel.selectedTab == tab ? .accentColor : .secondary)
-                                
-                                Text(tab.rawValue)
-                                    .foregroundColor(viewModel.selectedTab == tab ? .primary : .secondary)
-                            }
-                        }
-                        .buttonStyle(.plain)
+                        Text(tab.rawValue).tag(tab)
                     }
                 }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 260) // keep it compact so the recording controls have space
                 
                 Spacer()
                 
