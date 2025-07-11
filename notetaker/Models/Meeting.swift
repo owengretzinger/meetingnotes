@@ -69,20 +69,29 @@ struct Meeting: Codable, Identifiable, Hashable {
     var transcriptChunks: [TranscriptChunk]
     var userNotes: String
     var generatedNotes: String
+    // MARK: - Data versioning
+    /// Version of this Meeting record on disk. Useful for migration.
+    var dataVersion: Int
+    /// Current app data version. Increment whenever you make a breaking change to `Meeting` that requires migration.
+    static let currentDataVersion = 1
     
     init(id: UUID = UUID(), 
          date: Date = Date(),
          title: String = "",
          transcriptChunks: [TranscriptChunk] = [],
          userNotes: String = "", 
-         generatedNotes: String = "") {
+         generatedNotes: String = "",
+         dataVersion: Int = Meeting.currentDataVersion) {
         self.id = id
         self.date = date
         self.title = title
         self.transcriptChunks = transcriptChunks
         self.userNotes = userNotes
         self.generatedNotes = generatedNotes
+        self.dataVersion = dataVersion
     }
+    
+    // `Codable` conformance now uses the compiler-synthesised implementation.
     
     // Computed property for backward compatibility with existing code
     var transcript: String {

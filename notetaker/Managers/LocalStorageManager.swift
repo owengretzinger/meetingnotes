@@ -30,15 +30,19 @@ class LocalStorageManager {
     /// - Returns: True if successful, false otherwise
     func saveMeeting(_ meeting: Meeting) -> Bool {
         let fileURL = meetingsDirectory.appendingPathComponent("\(meeting.id.uuidString).json")
-        
+
         do {
             let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
+            encoder.outputFormatting = [.prettyPrinted]
             encoder.dateEncodingStrategy = .iso8601
-            
+
             let data = try encoder.encode(meeting)
-            try data.write(to: fileURL)
-            
+
+            // Write atomically using a temp file then replace
+            let tmpURL = fileURL.appendingPathExtension("tmp")
+            try data.write(to: tmpURL, options: .atomic)
+            try FileManager.default.replaceItem(at: fileURL, withItemAt: tmpURL, backupItemName: nil, options: [], resultingItemURL: nil)
+
             print("✅ Saved meeting: \(meeting.id)")
             return true
         } catch {
@@ -58,12 +62,41 @@ class LocalStorageManager {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             
+            var didCreateBackup = false
+            
             let meetings = fileURLs.compactMap { url -> Meeting? in
                 guard let data = try? Data(contentsOf: url),
                       let meeting = try? decoder.decode(Meeting.self, from: data) else {
                     print("⚠️ Failed to decode meeting at: \(url)")
                     return nil
                 }
+                // Forward-compatibility guard – skip if file was written by a newer build
+                if meeting.dataVersion > Meeting.currentDataVersion {
+                    print("🚫 Meeting \(meeting.id) written by newer app version (\(meeting.dataVersion)). Skipping load.")
+                    return nil
+                }
+
+                // Check if migration is needed
+                if meeting.dataVersion < Meeting.currentDataVersion {
+                    // Create backup **once** before we start mutating anything
+                    if !didCreateBackup {
+                        _ = DataMigrationManager.shared.backupMeetingsDirectory()
+                        didCreateBackup = true
+                    }
+
+                    if let migratedMeeting = DataMigrationManager.shared.migrateMeeting(meeting) {
+                        if saveMeeting(migratedMeeting) {
+                            print("✅ Migrated and saved meeting: \(migratedMeeting.id)")
+                            return migratedMeeting
+                        }
+                        print("❌ Failed to save migrated meeting: \(migratedMeeting.id)")
+                    } else {
+                        print("❌ Failed to migrate meeting: \(meeting.id)")
+                    }
+                    // Return original if anything failed
+                    return meeting
+                }
+
                 return meeting
             }
             
