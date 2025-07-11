@@ -76,9 +76,6 @@ struct MeetingListView: View {
             .navigationDestination(for: Meeting.self) { meeting in
                 MeetingDetailView(meeting: meeting)
             }
-            .onAppear {
-                viewModel.loadMeetings()
-            }
         }
         .overlay {
             if viewModel.isLoading {

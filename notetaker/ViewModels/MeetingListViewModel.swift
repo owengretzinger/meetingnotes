@@ -55,9 +55,6 @@ class MeetingListViewModel: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             let loadedMeetings = LocalStorageManager.shared.loadMeetings()
             print("📋 Loaded \(loadedMeetings.count) meetings")
-            for meeting in loadedMeetings.prefix(3) {
-                print("📋 Meeting: \(meeting.id) - title: '\(meeting.title)', notes: '\(meeting.userNotes.prefix(50))...'")
-            }
             self?.meetings = loadedMeetings
             self?.isLoading = false
         }
