@@ -7,8 +7,27 @@ class MeetingListViewModel: ObservableObject {
     @Published var meetings: [Meeting] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var searchText: String = ""
     
     private var cancellables = Set<AnyCancellable>()
+    
+    // Computed property to filter meetings based on search text
+    var filteredMeetings: [Meeting] {
+        guard !searchText.isEmpty else { return meetings }
+        
+        return meetings.filter { meeting in
+            // Search in title
+            meeting.title.localizedCaseInsensitiveContains(searchText) ||
+            // Search in user notes
+            meeting.userNotes.localizedCaseInsensitiveContains(searchText) ||
+            // Search in generated notes
+            meeting.generatedNotes.localizedCaseInsensitiveContains(searchText) ||
+            // Search in transcript text
+            meeting.transcriptChunks.contains { chunk in
+                chunk.text.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
     
     init() {
         loadMeetings()

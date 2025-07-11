@@ -11,21 +11,7 @@ struct ContentView: View {
     @State private var showingSettings = false
     
     var body: some View {
-        VStack {
-            MeetingListView()
-                .toolbar {
-                    ToolbarItem(placement: .automatic) {
-                        Button {
-                            showingSettings = true
-                        } label: {
-                            Label("Settings", systemImage: "gear")
-                        }
-                    }
-                }
-        }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
+        MeetingListView()
     }
 }
 

@@ -3,15 +3,16 @@ import SwiftUI
 struct MeetingListView: View {
     @StateObject private var viewModel = MeetingListViewModel()
     @State private var navigationPath = NavigationPath()
+    @State private var showingSettings = false
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
             List {
-                if viewModel.meetings.isEmpty && !viewModel.isLoading {
+                if viewModel.filteredMeetings.isEmpty && !viewModel.isLoading {
                     ContentUnavailableView(
-                        "No Meetings Yet",
-                        systemImage: "mic.slash",
-                        description: Text("Start a new meeting to begin transcribing")
+                        viewModel.searchText.isEmpty ? "No Meetings Yet" : "No Results",
+                        systemImage: viewModel.searchText.isEmpty ? "mic.slash" : "magnifyingglass",
+                        description: Text(viewModel.searchText.isEmpty ? "Start a new meeting to begin transcribing" : "Try a different search term")
                     )
                 } else {
                     ForEach(groupedMeetings, id: \.day) { dayGroup in
@@ -37,14 +38,37 @@ struct MeetingListView: View {
             }
             .navigationTitle("Meetings")
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    // Search field (leftmost within the right-aligned group)
+                    HStack(spacing: 4) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        TextField("Search meetings...", text: $viewModel.searchText)
+                            .textFieldStyle(.plain)
+                    }
+                    .padding(6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.secondary.opacity(0.5))
+                    )
+                    .frame(width: 220)
+                    // Settings button (middle)
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    // Plus button (rightmost)
                     Button {
                         let newMeeting = viewModel.createNewMeeting()
                         navigationPath.append(newMeeting)
                     } label: {
-                        Label("New Meeting", systemImage: "plus")
+                        Image(systemName: "plus")
                     }
                 }
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
             }
             .navigationDestination(for: Meeting.self) { meeting in
                 MeetingDetailView(meeting: meeting)
@@ -64,7 +88,7 @@ struct MeetingListView: View {
         let calendar = Calendar.current
         let now = Date()
         
-        let grouped = Dictionary(grouping: viewModel.meetings) { meeting in
+        let grouped = Dictionary(grouping: viewModel.filteredMeetings) { meeting in
             calendar.startOfDay(for: meeting.date)
         }
         
