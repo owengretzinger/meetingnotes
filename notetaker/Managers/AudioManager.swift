@@ -19,6 +19,22 @@ class AudioManager: NSObject, ObservableObject {
     // ScreenCaptureKit properties
     private var stream: SCStream?
     
+    // Add properties near the top, after existing private vars
+    private var micRetryCount = 0
+    private let maxMicRetries = 3
+
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleAudioEngineConfigurationChange),
+                                               name: .AVAudioEngineConfigurationChange,
+                                               object: audioEngine)
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     func startRecording() {
         print("Starting recording...")
         
@@ -63,8 +79,19 @@ class AudioManager: NSObject, ObservableObject {
         print("Internal cleanup completed")
     }
     
+    private func restartMicrophone() {
+        guard isRecording, micRetryCount < maxMicRetries else { return }
+        
+        print("🔄 Restarting microphone capture (attempt \(micRetryCount + 1))")
+        micRetryCount += 1
+        
+        cleanupAudioEngine()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.startMicrophoneTap()
+        }
+    }
 
-    
     /// Starts a microphone tap without creating a new Deepgram connection (used when also capturing system audio)
     private func startMicrophoneTap() {
         print("🎤 Starting microphone tap...")
@@ -78,32 +105,49 @@ class AudioManager: NSObject, ObservableObject {
                                              channels: 1,
                                              interleaved: false) else {
                 print("❌ Failed to create target audio format for mic tap")
+                self.restartMicrophone()
                 return
             }
 
             guard let converter = AVAudioConverter(from: recordingFormat, to: targetFormat) else {
                 print("❌ Failed to create audio converter for mic tap")
+                self.restartMicrophone()
                 return
             }
 
             inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
+                guard let self = self else { return }
+                
+                // Check for invalid buffer
+                guard buffer.frameLength > 0, buffer.floatChannelData != nil else {
+                    print("❌ Invalid mic buffer detected - restarting")
+                    self.restartMicrophone()
+                    return
+                }
+                
                 // Debug mic RMS
                 if let ch = buffer.floatChannelData?[0] {
                     let frameCount = Int(buffer.frameLength)
                     let samples = UnsafeBufferPointer(start: ch, count: frameCount)
                     let rms = sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(frameCount))
                     print("🎤 Mic RMS: \(rms)")
+                    
+                    // Optional: Check for prolonged silence (e.g., RMS < threshold for multiple buffers)
+                    // But for now, just process
                 }
-                self?.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .mic)
+                
+                self.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .mic)
             }
 
             audioEngine.prepare()
             try audioEngine.start()
             connectToDeepgram(source: .mic)
             print("✅ Microphone tap started successfully")
+            micRetryCount = 0  // Reset on success
             
         } catch {
             print("❌ Failed to start microphone tap: \(error)")
+            self.restartMicrophone()
         }
     }
     
@@ -200,6 +244,7 @@ class AudioManager: NSObject, ObservableObject {
         
         // Stop microphone capture
         cleanupAudioEngine()
+        micRetryCount = 0
         
         // Close WebSocket
         micSocketTask?.cancel(with: .normalClosure, reason: nil)
@@ -380,4 +425,9 @@ extension CMSampleBuffer {
             return AVAudioPCMBuffer(pcmFormat: format, bufferListNoCopy: audioBufferList.unsafePointer)
         }
     }
+} 
+
+@objc private func handleAudioEngineConfigurationChange(_ notification: Notification) {
+    print("🔔 Audio engine configuration changed - restarting mic")
+    restartMicrophone()
 } 
