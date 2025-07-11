@@ -60,7 +60,7 @@ export default function Privacy() {
             </div>
             <h3 className="text-xl font-bold mb-3">Secure API Keys</h3>
             <p className="text-gray-300">
-              Your Deepgram and OpenAI API keys are stored securely on your device, never shared.
+              Your OpenAI API key is stored securely on your device, never shared.
             </p>
           </div>
         </div>

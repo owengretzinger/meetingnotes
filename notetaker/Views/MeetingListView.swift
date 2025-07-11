@@ -71,7 +71,7 @@ struct MeetingListView: View {
                 }
             }
             .sheet(isPresented: $showingSettings) {
-                SettingsView()
+                SettingsView(viewModel: SettingsViewModel())
             }
             .navigationDestination(for: Meeting.self) { meeting in
                 MeetingDetailView(meeting: meeting)

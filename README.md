@@ -1,7 +1,7 @@
-Introducing Notetaker, an open source Granola alternative for on-device AI meeting notes:
+Introducing Meetingnotes: the free, open-source AI notetaker for busy engineers.
 
-- 100% free (bring your own Deepgram & OpenAI API keys)
-- 100% data privacy (data stored on device)
+- 100% free (bring your own OpenAI API key)
+- 100% privacy (all data stored on device)
 - 100% open source (please contribute)
 
 ## Features
@@ -9,7 +9,7 @@ Introducing Notetaker, an open source Granola alternative for on-device AI meeti
 Implemented:
 
 - Recording mic & system audio
-- Live transcript using Deepgram
+- Live transcript
 - Ability to also write down additional notes
 - AI generated enhanced notes
 - Copy functionality
@@ -24,6 +24,7 @@ Todo:
 - Markdown formatting
 - Auto generate notes when recording is stopped
 - Different note templates
+- Fix transcript UI alignment
 
 Later:
 

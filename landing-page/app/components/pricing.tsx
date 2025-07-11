@@ -69,7 +69,7 @@ export default function Pricing() {
                       <div>
                         <h4 className="font-semibold text-white mb-1">Bring Your Own API Keys</h4>
                         <p className="text-gray-300 text-sm">
-                          Use your Deepgram and OpenAI API keys. Pay only for what you use, directly to the providers.
+                          Use your OpenAI API key. Pay only for what you use, directly to the providers.
                         </p>
                       </div>
                     </div>
@@ -89,8 +89,7 @@ export default function Pricing() {
                       <div>
                         <h4 className="font-semibold text-white mb-1">Typical Costs</h4>
                         <p className="text-gray-300 text-sm">
-                          ~$0.28/hour using Deepgram Nova-3 and GPT-4o-mini. Pay only for what you use, no markup or
-                          subscriptions.
+                          ~$0.20/hour using gpt-4o-mini-transcribe for transcription and gpt-4.1-mini for summarization.
                         </p>
                       </div>
                     </div>
@@ -104,7 +103,7 @@ export default function Pricing() {
                   <div className="text-center">
                     <div className="font-semibold text-white">Meetingnotes</div>
                     <div className="text-green-400">$0 + API costs</div>
-                    <div className="text-gray-400">~$0.28/hour</div>
+                    <div className="text-gray-400">~$0.20/hour</div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold text-white">Granola</div>

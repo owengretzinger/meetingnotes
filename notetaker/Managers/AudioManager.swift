@@ -6,7 +6,7 @@ import Foundation
 import SwiftUI
 import ScreenCaptureKit
 
-/// Manages audio capture from microphone and system audio and handles real-time transcription via Deepgram
+/// Manages audio capture from microphone and system audio and handles real-time transcription via OpenAI
 class AudioManager: NSObject, ObservableObject {
     @Published var transcriptChunks: [TranscriptChunk] = []
     @Published var isRecording = false
@@ -14,7 +14,7 @@ class AudioManager: NSObject, ObservableObject {
     private var audioEngine = AVAudioEngine()
     private var micSocketTask: URLSessionWebSocketTask?
     private var systemSocketTask: URLSessionWebSocketTask?
-    private let deepgramURL = URL(string: "wss://api.deepgram.com/v1/listen?encoding=linear16&sample_rate=16000&channels=1&interim_results=true&model=nova-3")!
+    private let realtimeURL = URL(string: "wss://api.openai.com/v1/realtime?intent=transcription")!
     
     // ScreenCaptureKit properties
     private var stream: SCStream?
@@ -22,6 +22,9 @@ class AudioManager: NSObject, ObservableObject {
     // Add properties near the top, after existing private vars
     private var micRetryCount = 0
     private let maxMicRetries = 3
+    
+    // Add current interim transcripts per source
+    private var currentInterim: [AudioSource: String] = [.mic: "", .system: ""]
 
     override init() {
         super.init()
@@ -93,7 +96,7 @@ class AudioManager: NSObject, ObservableObject {
         }
     }
 
-    /// Starts a microphone tap without creating a new Deepgram connection (used when also capturing system audio)
+    /// Starts a microphone tap without creating a new OpenAI connection (used when also capturing system audio)
     private func startMicrophoneTap() {
         print("🎤 Starting microphone tap...")
         
@@ -102,7 +105,7 @@ class AudioManager: NSObject, ObservableObject {
             let recordingFormat = inputNode.outputFormat(forBus: 0)
 
             guard let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16,
-                                             sampleRate: 16000,
+                                             sampleRate: 24000,
                                              channels: 1,
                                              interleaved: false) else {
                 print("❌ Failed to create target audio format for mic tap")
@@ -142,7 +145,7 @@ class AudioManager: NSObject, ObservableObject {
 
             audioEngine.prepare()
             try audioEngine.start()
-            connectToDeepgram(source: .mic)
+            connectToOpenAIRealtime(source: .mic)
             print("✅ Microphone tap started successfully")
             micRetryCount = 0  // Reset on success
             
@@ -222,7 +225,7 @@ class AudioManager: NSObject, ObservableObject {
                 self.isRecording = true
             }
             
-            connectToDeepgram(source: .system)
+            connectToOpenAIRealtime(source: .system)
             print("✅ System audio capture started successfully")
             
         } catch {
@@ -263,7 +266,7 @@ class AudioManager: NSObject, ObservableObject {
     private func processAudioBuffer(_ buffer: AVAudioPCMBuffer, converter: AVAudioConverter, targetFormat: AVAudioFormat, source: AudioSource) {
         let processBuffer = buffer
         
-        // Convert to target format (16kHz int16 mono) in a single step – AVAudioConverter will handle resampling and downmixing
+        // Convert to target format (24kHz int16 mono) in a single step – AVAudioConverter will handle resampling and downmixing
         let outputFrameCapacity = AVAudioFrameCount(Double(processBuffer.frameLength) * targetFormat.sampleRate / processBuffer.format.sampleRate)
         guard let outputBuffer = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: outputFrameCapacity) else {
             return
@@ -279,7 +282,7 @@ class AudioManager: NSObject, ObservableObject {
             return
         }
         
-        // Convert to Data for Deepgram
+        // Convert to Data for OpenAI
         guard let channelData = outputBuffer.int16ChannelData?[0] else {
             return
         }
@@ -290,18 +293,50 @@ class AudioManager: NSObject, ObservableObject {
         sendAudioData(data, source: source)
     }
     
-    private func connectToDeepgram(source: AudioSource) {
-        guard let key = KeychainHelper.shared.get(forKey: "deepgramKey"), !key.isEmpty else {
-            print("❌ No Deepgram key found")
+    private func connectToOpenAIRealtime(source: AudioSource) {
+        guard let key = KeychainHelper.shared.get(forKey: "openAIKey"), !key.isEmpty else {
+            print("❌ No OpenAI key found")
             return
         }
 
         let session = URLSession(configuration: .default)
-        var request = URLRequest(url: deepgramURL)
-        request.addValue("Token \(key)", forHTTPHeaderField: "Authorization")
+        var request = URLRequest(url: realtimeURL)
+        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        request.addValue("realtime=v1", forHTTPHeaderField: "OpenAI-Beta")
 
         let task = session.webSocketTask(with: request)
         task.resume()
+
+        // Send initial configuration
+        let config: [String: Any] = [
+            "type": "transcription_session.update",
+            "session": [
+                "input_audio_format": "pcm16",
+                "input_audio_transcription": [
+                    "model": "gpt-4o-mini-transcribe",
+                    "language": "en"
+                ],
+                "turn_detection": [
+                    "type": "server_vad",
+                    "threshold": 0.5,
+                    "prefix_padding_ms": 300,
+                    "silence_duration_ms": 200
+                ]
+            ]
+        ]
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: config)
+            if let jsonStr = String(data: jsonData, encoding: .utf8) {
+                task.send(.string(jsonStr)) { error in
+                    if let error = error {
+                        print("❌ Config send error: \(error)")
+                    }
+                }
+            }
+        } catch {
+            print("❌ Config JSON error: \(error)")
+        }
 
         switch source {
         case .mic:
@@ -311,7 +346,7 @@ class AudioManager: NSObject, ObservableObject {
         }
 
         receiveMessage(for: source)
-        print("🌐 Connected to Deepgram (\(source))")
+        print("🌐 Connected to OpenAI Realtime (\(source))")
     }
 
     private func receiveMessage(for source: AudioSource) {
@@ -321,7 +356,7 @@ class AudioManager: NSObject, ObservableObject {
             case .success(let message):
                 switch message {
                 case .string(let text):
-                    self?.parseTranscription(text, source: source)
+                    self?.parseRealtimeEvent(text, source: source)
                 case .data:
                     break
                 @unknown default:
@@ -333,45 +368,54 @@ class AudioManager: NSObject, ObservableObject {
                 // Attempt reconnect if still recording
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     if self?.isRecording == true {
-                        self?.connectToDeepgram(source: source)
+                        self?.connectToOpenAIRealtime(source: source)
                     }
                 }
             }
         }
     }
 
-    private func parseTranscription(_ text: String, source: AudioSource) {
+    private func parseRealtimeEvent(_ text: String, source: AudioSource) {
         guard let data = text.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let type = json["type"] as? String, type == "Results",
-              let channel = json["channel"] as? [String: Any],
-              let alternatives = channel["alternatives"] as? [[String: Any]],
-              let alt = alternatives.first,
-              let transcriptText = alt["transcript"] as? String,
-              !transcriptText.isEmpty else { return }
+              let type = json["type"] as? String else { return }
 
-        let isFinal = json["is_final"] as? Bool ?? false
-        
-        DispatchQueue.main.async {
-            let chunk = TranscriptChunk(
-                timestamp: Date(),
-                source: source,
-                text: transcriptText,
-                isFinal: isFinal
-            )
-            
-            // For interim results, replace the last interim chunk from the same source
-            if !isFinal {
-                // Remove the last interim chunk from the same source
-                if let lastIndex = self.transcriptChunks.lastIndex(where: { !$0.isFinal && $0.source == source }) {
-                    self.transcriptChunks.remove(at: lastIndex)
+        switch type {
+        case "conversation.item.input_audio_transcription.delta":
+            if let delta = json["delta"] as? String {
+                currentInterim[source]! += delta
+                
+                DispatchQueue.main.async {
+                    // Remove previous interim chunk from the same source
+                    if let lastIndex = self.transcriptChunks.lastIndex(where: { !$0.isFinal && $0.source == source }) {
+                        self.transcriptChunks.remove(at: lastIndex)
+                    }
+                    let chunk = TranscriptChunk(
+                        timestamp: Date(),
+                        source: source,
+                        text: self.currentInterim[source] ?? "",
+                        isFinal: false
+                    )
+                    self.transcriptChunks.append(chunk)
                 }
-                self.transcriptChunks.append(chunk)
-            } else {
-                // For final results, remove any interim chunks from the same source and add the final chunk
-                self.transcriptChunks.removeAll { !$0.isFinal && $0.source == source }
-                self.transcriptChunks.append(chunk)
             }
+        case "conversation.item.input_audio_transcription.completed":
+            if let transcript = json["transcript"] as? String {
+                DispatchQueue.main.async {
+                    // Remove any interim chunks from the same source
+                    self.transcriptChunks.removeAll { !$0.isFinal && $0.source == source }
+                    let chunk = TranscriptChunk(
+                        timestamp: Date(),
+                        source: source,
+                        text: transcript,
+                        isFinal: true
+                    )
+                    self.transcriptChunks.append(chunk)
+                }
+                currentInterim[source] = ""
+            }
+        default:
+            break
         }
     }
 
@@ -380,10 +424,20 @@ class AudioManager: NSObject, ObservableObject {
 
         guard let socket = task, socket.state == .running else { return }
 
-        socket.send(.data(data)) { error in
-            if let error = error {
-                print("❌ Send error (\(source)): \(error)")
+        let base64 = data.base64EncodedString()
+        let message: [String: Any] = ["type": "input_audio_buffer.append", "audio": base64]
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: message)
+            if let jsonStr = String(data: jsonData, encoding: .utf8) {
+                socket.send(.string(jsonStr)) { error in
+                    if let error = error {
+                        print("❌ Send error (\(source)): \(error)")
+                    }
+                }
             }
+        } catch {
+            print("❌ JSON send error")
         }
     }
     
@@ -402,9 +456,9 @@ extension AudioManager: SCStreamDelegate, SCStreamOutput {
         // Convert CMSampleBuffer to AVAudioPCMBuffer
         guard let pcmBuffer = sampleBuffer.asPCMBuffer else { return }
         
-        // Create converter for Deepgram format
+        // Create converter for OpenAI format
         let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16,
-                                       sampleRate: 16000,
+                                       sampleRate: 24000,
                                        channels: 1,
                                        interleaved: false)!
         

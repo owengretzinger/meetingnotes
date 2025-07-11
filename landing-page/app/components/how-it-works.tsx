@@ -8,7 +8,7 @@ export default function HowItWorks() {
       icon: <Download className="w-6 h-6" />,
       title: "Download & Setup",
       description:
-        "Download and install on macOS. Enter your Deepgram and OpenAI API keys (stored securely on-device).",
+        "Download and install on macOS. Enter your OpenAI API key (stored securely on-device).",
     },
     {
       number: "02",

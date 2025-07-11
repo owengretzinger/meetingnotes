@@ -7,7 +7,7 @@ export default function Features() {
       icon: <Mic className="w-8 h-8 text-blue-400" />,
       title: "Live Transcription",
       description:
-        "Records mic and system audio using Deepgram for real-time transcripts. No meeting bots required—transcribe directly from your computer's audio.",
+        "Records mic & system audio and uses OpenAI for real-time transcripts. No meeting bots required—transcribe directly from your computer's audio.",
       image: "/placeholder.svg?height=200&width=300",
     },
     {
