@@ -8,7 +8,7 @@
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/owengretzinger/notetaker/releases/download/v1.0/Notetaker-1.0.dmg" length="4108528" type="application/octet-stream"/>
+            <enclosure url="https://github.com/owengretzinger/notetaker/releases/download/v1.0/Notetaker-1.0.dmg" length="4108431" type="application/octet-stream"/>
         </item>
     </channel>
 </rss>
