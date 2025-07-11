@@ -39,7 +39,7 @@ struct MeetingListView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .navigationTitle("Meetings")
+            .navigationTitle("Meetingnotes")
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     // Search field (leftmost within the right-aligned group)

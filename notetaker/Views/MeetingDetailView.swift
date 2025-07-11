@@ -4,7 +4,7 @@ struct CollapsedTranscriptChunkView: View {
     let chunk: CollapsedTranscriptChunk
     
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
             // Source indicator
             HStack(spacing: 4) {
                 Image(systemName: chunk.source.icon)
