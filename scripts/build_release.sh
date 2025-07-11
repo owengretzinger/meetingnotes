@@ -9,6 +9,7 @@ set -e  # Exit on any error
 APP_NAME="Notetaker"
 BUNDLE_ID="owen.notetaker"
 VERSION=$(grep -m1 "MARKETING_VERSION" notetaker.xcodeproj/project.pbxproj | sed 's/.*= \(.*\);/\1/')
+SIGN_ID="-"   # always use an ad-hoc signature
 
 if [ -z "$VERSION" ]; then
     echo "❌ Could not determine version from project file"
@@ -21,9 +22,26 @@ DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 
 echo "🚀 Building ${APP_NAME} v${VERSION}..."
 
-# Clean and build
-echo "📦 Building app..."
-xcodebuild -project notetaker.xcodeproj -scheme notetaker -configuration Release -derivedDataPath "${BUILD_DIR}" clean build
+# Clean and build a *universal* binary (arm64 + x86_64)
+# -----------------------------------------------------
+# Xcode will only build the active architecture by default ("My Mac") which results in an
+# Apple-silicon-only binary when run on an M-series machine. By explicitly passing both
+# architectures and using the generic macOS destination we ensure a universal build.
+# The resulting binary is produced at the usual DerivedData location so the rest of the
+# script can continue to reference $APP_PATH unchanged.
+
+ARCHS="arm64 x86_64"
+
+echo "📦 Building universal app (archs: $ARCHS)..."
+xcodebuild \
+  -project notetaker.xcodeproj \
+  -scheme notetaker \
+  -configuration Release \
+  -derivedDataPath "${BUILD_DIR}" \
+  -destination 'generic/platform=macOS' \
+  ARCHS="$ARCHS" \
+  ONLY_ACTIVE_ARCH=NO \
+  clean build
 
 # Find the built app
 APP_PATH="${BUILD_DIR}/Build/Products/Release/${APP_NAME}.app"
@@ -32,6 +50,18 @@ if [ ! -d "$APP_PATH" ]; then
     echo "❌ App not found at $APP_PATH"
     exit 1
 fi
+
+# 🔏 Code-sign the app (ad-hoc) -------------------------------------------------
+
+echo "🔏 Ad-hoc signing (.app + embedded frameworks)"
+codesign \
+  --force \
+  --deep \
+  --sign - \
+  "$APP_PATH"
+
+# Validate the signature before packaging
+codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 
 echo "✅ App built successfully at $APP_PATH"
 
