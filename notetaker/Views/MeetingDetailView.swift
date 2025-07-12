@@ -32,6 +32,7 @@ struct MeetingDetailView: View {
     @StateObject private var viewModel: MeetingViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteAlert = false
+    @State private var isEditing = false
     
     init(meeting: Meeting) {
         self._viewModel = StateObject(wrappedValue: MeetingViewModel(meeting: meeting))
@@ -210,6 +211,7 @@ struct MeetingDetailView: View {
                     Button(action: {
                         Task {
                             await viewModel.generateNotes()
+                            isEditing = false
                         }
                     }) {
                         HStack(spacing: 4) {
@@ -225,14 +227,31 @@ struct MeetingDetailView: View {
                     .buttonStyle(.plain)
                     .disabled(viewModel.meeting.transcript.isEmpty)
                 }
+                Button(action: {
+                    isEditing.toggle()
+                }) {
+                    Image(systemName: isEditing ? "pencil.circle.fill" : "pencil.circle")
+                }
+                .buttonStyle(.plain)
             }
             
-            TextEditor(text: $viewModel.meeting.generatedNotes)
-                .font(.body)
-                .scrollContentBackground(.hidden)
-                .background(Color.gray.opacity(0.05))
-                .cornerRadius(8)
-                .frame(maxHeight: .infinity)
+            if isEditing {
+                TextEditor(text: Binding(
+                    get: { viewModel.meeting.generatedNotes },
+                    set: { viewModel.meeting.generatedNotes = $0 }
+                ))
+                    .font(.body)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.gray.opacity(0.05))
+                    .cornerRadius(8)
+                    .frame(maxHeight: .infinity)
+            } else {
+                RenderedNotesView(text: viewModel.meeting.generatedNotes)
+                    .font(.body)
+                    .background(Color.gray.opacity(0.05))
+                    .cornerRadius(8)
+                    .frame(maxHeight: .infinity)
+            }
         }
     }
 }

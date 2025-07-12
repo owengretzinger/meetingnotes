@@ -24,7 +24,6 @@ Todo:
 - Markdown formatting
 - Auto generate notes when recording is stopped
 - Different note templates
-- Fix transcript UI alignment
 
 Later:
 
