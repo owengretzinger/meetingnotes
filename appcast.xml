@@ -1,14 +1,14 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
-        <title>Notetaker</title>
+        <title>Meetingnotes</title>
         <item>
             <title>1.0</title>
             <pubDate>Fri, 11 Jul 2025 08:36:54 -0400</pubDate>
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/owengretzinger/notetaker/releases/download/v1.0/Notetaker-1.0.dmg" length="7481877" type="application/octet-stream"/>
+            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0/Meetingnotes-1.0.dmg" length="8183935" type="application/octet-stream"/>
         </item>
     </channel>
 </rss>

@@ -84,10 +84,10 @@ Follow these steps to create a new release with auto-updates:
 
 3. **Create GitHub Release:**
 
-   - Go to [GitHub Releases](https://github.com/owengretzinger/notetaker/releases)
+   - Go to [GitHub Releases](https://github.com/owengretzinger/meetingnotes/releases)
    - Click "Create a new release"
    - Tag: `v1.0.1` (match the version number)
-   - Title: `Notetaker v1.0.1`
+   - Title: `Meetingnotes v1.0.1`
    - Upload the DMG from `releases/` folder
    - Write release notes describing changes
 
