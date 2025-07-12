@@ -1,11 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, Github, Star, Shield, Code, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Download, Github, Star, Shield, Code, Zap } from "lucide-react";
 
 export default function Hero() {
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
       <div className="container mx-auto text-center">
+        <Badge
+          variant="secondary"
+          className="mb-8 bg-blue-600/20 text-blue-400 border-blue-600/30"
+        >
         <Badge
           variant="secondary"
           className="mb-8 bg-blue-600/20 text-blue-400 border-blue-600/30"
@@ -21,6 +28,8 @@ export default function Hero() {
           Engineers
         </h1>
 
+        <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+          Just you and your OpenAI API key. Go crazy.
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
           Just you and your OpenAI API key. Go crazy.
         </p>
@@ -73,6 +82,11 @@ export default function Hero() {
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
+                  <svg
+                    className="w-8 h-8 text-blue-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
@@ -83,10 +97,15 @@ export default function Hero() {
                 <h3 className="text-xl font-semibold text-white mb-2">
                   Demo Video
                 </h3>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  Demo Video
+                </h3>
                 <p className="text-gray-400">See Meetingnotes in action</p>
               </div>
             </div>
             <p className="text-sm text-gray-400 mt-4 text-center">
+              Watch how Meetingnotes transcribes meetings and generates
+              AI-enhanced notes in real-time
               Watch how Meetingnotes transcribes meetings and generates
               AI-enhanced notes in real-time
             </p>
@@ -105,5 +124,6 @@ export default function Hero() {
         </div>
       </div>
     </section>
+  );
   );
 }
