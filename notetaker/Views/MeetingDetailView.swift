@@ -147,6 +147,12 @@ struct MeetingDetailView: View {
             Text("Are you sure you want to delete this meeting? This action cannot be undone.")
         }
         .onDisappear {
+            // Stop recording if it's in progress when leaving the page
+            if viewModel.isRecording {
+                print("🛑 Stopping recording because user is leaving the page")
+                viewModel.stopRecording()
+            }
+            
             // Auto-delete empty meetings when leaving, otherwise save
             viewModel.deleteIfEmpty()
         }
