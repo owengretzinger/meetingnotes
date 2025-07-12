@@ -7,29 +7,29 @@ export default function Features() {
       icon: <Mic className="w-8 h-8 text-blue-400" />,
       title: "Live Transcription",
       description:
-        "Records mic & system audio and uses OpenAI for real-time transcripts. No meeting bots required—transcribe directly from your computer's audio.",
-      image: "/placeholder.svg?height=200&width=300",
+        "Records mic + system audio and uses OpenAI for real-time transcripts. No meeting bots required.",
+      image: "/transcript.png",
     },
     {
       icon: <Lightbulb className="w-8 h-8 text-yellow-400" />,
       title: "AI-Enhanced Notes",
       description:
-        "Generates summaries and highlights from transcripts plus your manual notes, powered by OpenAI. Get intelligent insights from every meeting.",
-      image: "/placeholder.svg?height=200&width=300",
+        "Generates summaries from transcripts plus your manual notes, powered by OpenAI.",
+      image: "/notes.png",
     },
     {
       icon: <Settings className="w-8 h-8 text-green-400" />,
       title: "Customization & Privacy",
       description:
-        "Edit system prompts, add personal blurbs, and store everything locally. Use your own API keys for complete control and privacy.",
-      image: "/placeholder.svg?height=200&width=300",
-    },
+        "Edit the system prompt and bring your own API key. Everything is stored locally.",
+      image: "/settings.png",
+    },  
     {
       icon: <FolderOpen className="w-8 h-8 text-purple-400" />,
       title: "Easy Management",
       description:
-        "Search, delete, copy notes/transcripts, and auto-update the app. Organize your meeting history with powerful management tools.",
-      image: "/placeholder.svg?height=200&width=300",
+        "Search, delete, and copy your notes & transcripts, and auto-update the app.",
+      image: "/search.png",
     },
   ];
 
@@ -64,7 +64,7 @@ export default function Features() {
                   <img
                     src={feature.image || "/placeholder.svg"}
                     alt={`${feature.title} screenshot`}
-                    className="w-full rounded-lg border border-gray-800"
+                    className="w-full"
                   />
                 </div>
               </CardContent>
