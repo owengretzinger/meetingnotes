@@ -11,8 +11,7 @@ export default function Community() {
             Join the Open-Source Community
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Meetingnotes is built by the community for the community. Star us on
-            GitHub, contribute features, or report issues.
+            Give a star on GitHub, contribute features, or report issues.
           </p>
         </div>
 
