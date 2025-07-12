@@ -18,11 +18,10 @@ Implemented:
 - Abilty to edit system prompt
 - Use your own API key
 - Auto updates
+- Text formatting
 
 Todo:
 
-- Markdown formatting
-- Auto generate notes when recording is stopped
 - Different note templates
 
 Later:

@@ -29,14 +29,16 @@ struct RenderedNotesView: View {
         } else if let (indentLevel, bullet, content) = listItemInfo(for: line) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(bullet)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                 Text(content)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
             }
             .padding(.leading, CGFloat(indentLevel * 15))
+            .frame(maxWidth: .infinity, alignment: .leading)
         } else {
             Text(trimmed)
                 .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
     
@@ -57,7 +59,7 @@ struct RenderedNotesView: View {
     
     private func listItemInfo(for line: String) -> (indentLevel: Int, bullet: String, content: String)? {
         let leadingSpaces = line.prefix(while: { $0 == " " }).count
-        let indentLevel = leadingSpaces / 2
+        let indentLevel = leadingSpaces / 4
         
         let remaining = String(line.dropFirst(leadingSpaces))
         
