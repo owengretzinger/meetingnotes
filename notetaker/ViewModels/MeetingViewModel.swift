@@ -26,21 +26,31 @@ class MeetingViewModel: ObservableObject {
     @Published var isGeneratingNotes = false
     @Published var errorMessage: String?
     @Published var isRecording = false
-    @Published var selectedTab: MeetingViewTab = .myNotes
+    @Published var selectedTab: MeetingViewTab = .transcript  // Default to transcript tab
     @Published var recordingState: RecordingState = .idle
     @Published var isDeleted = false
     
     private let audioManager = AudioManager()
     private var cancellables = Set<AnyCancellable>()
+    private var isNewMeeting = false
     
     init(meeting: Meeting = Meeting()) {
         // Load the latest version of the meeting from storage if it exists
         if let savedMeeting = LocalStorageManager.shared.loadMeetings().first(where: { $0.id == meeting.id }) {
             print("🔄 Loading latest version of meeting: \(meeting.id)")
             self.meeting = savedMeeting
+            isNewMeeting = false
         } else {
             print("🆕 Using provided meeting: \(meeting.id)")
             self.meeting = meeting
+            isNewMeeting = true
+        }
+        
+        // Set initial tab based on notes existence
+        if !self.meeting.generatedNotes.isEmpty {
+            selectedTab = .enhancedNotes
+        } else {
+            selectedTab = .transcript
         }
         
         // NEW: Seed the audio manager with any existing transcript chunks so the initial
@@ -70,6 +80,13 @@ class MeetingViewModel: ObservableObject {
                 self?.saveMeeting()
             }
             .store(in: &cancellables)
+        
+        // Auto-start recording for new meetings
+        if isNewMeeting {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.startRecording()
+            }
+        }
     }
     
     private func updateRecordingState() {
@@ -107,6 +124,17 @@ class MeetingViewModel: ObservableObject {
     func stopRecording() {
         audioManager.stopRecording()
         saveMeeting()
+        
+        // Auto-generate notes if there's a transcript and no existing notes
+        if !meeting.formattedTranscript.isEmpty && meeting.generatedNotes.isEmpty {
+            Task {
+                await generateNotes()
+                // Switch to enhanced notes tab after generation
+                if !meeting.generatedNotes.isEmpty {
+                    selectedTab = .enhancedNotes
+                }
+            }
+        }
     }
     
     func generateNotes() async {
