@@ -7,23 +7,25 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">MN</span>
-              </div>
+              <img
+                src="/logo.svg"
+                alt="Meetingnotes logo"
+                className="w-8 h-8"
+              />
               <span className="text-xl font-bold">Meetingnotes</span>
             </div>
             <p className="text-gray-400 mb-4">Free Open-Source AI Notetaker for macOS</p>
             <div className="flex space-x-4">
               <a
-                href="https://github.com/meetingnotes/meetingnotes"
+                href="https://github.com/owengretzinger/meetingnotes"
                 className="text-gray-400 hover:text-white transition-colors"
               >
                 <Github className="w-5 h-5" />
               </a>
-              <a href="https://twitter.com/meetingnotes" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://x.com/owengretzinger" className="text-gray-400 hover:text-white transition-colors">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="mailto:hello@meetingnotes.dev" className="text-gray-400 hover:text-white transition-colors">
+              <a href="mailto:owengretzinger@gmail.com" className="text-gray-400 hover:text-white transition-colors">
                 <Mail className="w-5 h-5" />
               </a>
             </div>
@@ -59,13 +61,13 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Community</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="https://github.com/meetingnotes/meetingnotes" className="hover:text-white transition-colors">
+                <a href="https://github.com/owengretzinger/meetingnotes" className="hover:text-white transition-colors">
                   GitHub Repo
                 </a>
               </li>
               <li>
                 <a
-                  href="https://github.com/meetingnotes/meetingnotes/blob/main/README.md"
+                  href="https://github.com/owengretzinger/meetingnotes/blob/main/README.md"
                   className="hover:text-white transition-colors"
                 >
                   Documentation
@@ -73,7 +75,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/meetingnotes/meetingnotes/blob/main/CONTRIBUTING.md"
+                  href="https://github.com/owengretzinger/meetingnotes/blob/main/CONTRIBUTING.md"
                   className="hover:text-white transition-colors"
                 >
                   Contribute
@@ -81,7 +83,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/meetingnotes/meetingnotes/issues"
+                  href="https://github.com/owengretzinger/meetingnotes/issues"
                   className="hover:text-white transition-colors"
                 >
                   Report Issues
@@ -105,7 +107,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/meetingnotes/meetingnotes/blob/main/LICENSE"
+                  href="https://github.com/owengretzinger/meetingnotes/blob/main/LICENSE"
                   className="hover:text-white transition-colors"
                 >
                   LGPL-3.0 License

@@ -42,17 +42,22 @@ export default function Hero() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4">
-            <Download className="w-5 h-5 mr-2" />
-            Download for macOS
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4" asChild>
+            <a href="/download">
+              <Download className="w-5 h-5 mr-2" />
+              Download for macOS
+            </a>
           </Button>
           <Button
             variant="outline"
             size="lg"
             className="border-gray-600 text-gray-300 hover:bg-gray-800 text-lg px-8 py-4 bg-transparent"
+            asChild
           >
-            <Github className="w-5 h-5 mr-2" />
-            View on GitHub
+            <a href="https://github.com/owengretzinger/meetingnotes">
+              <Github className="w-5 h-5 mr-2" />
+              View on GitHub
+            </a>
           </Button>
         </div>
 
