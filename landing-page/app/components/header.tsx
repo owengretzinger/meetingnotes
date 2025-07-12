@@ -15,13 +15,13 @@ export default function Header() {
         </a>
 
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#features" className="text-gray-300 hover:text-white transition-colors">
+          <a href="/#features" className="text-gray-300 hover:text-white transition-colors">
             Features
           </a>
-          <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors">
+          <a href="/#how-it-works" className="text-gray-300 hover:text-white transition-colors">
             How it Works
           </a>
-          <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">
+          <a href="/#pricing" className="text-gray-300 hover:text-white transition-colors">
             Pricing
           </a>
           <a

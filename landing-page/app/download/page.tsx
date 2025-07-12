@@ -37,7 +37,7 @@ export default function DownloadPage() {
                   <h2 className="text-2xl font-bold">Download Now</h2>
                 </div>
                 <p className="text-gray-300 mb-6">
-                  Ready to try it out? Download the latest version of Meetingnotes for macOS.
+                  Ready to try it out? Download the latest version of Meetingnotes for macOS (Requires macOS 14.0 or later).
                 </p>
                 <Button size="lg" className="bg-green-600 hover:bg-green-700 w-full" asChild>
                   <a href="https://github.com/owengretzinger/meetingnotes/releases" target="_blank" rel="noopener noreferrer">

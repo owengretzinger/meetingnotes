@@ -9,8 +9,7 @@ export default function Pricing() {
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">Pricing That Makes Sense</h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            No subscriptions, no hidden fees, no premium tiers. Just bring your own API keys and enjoy unlimited
-            AI-powered meeting notes.
+            No subscriptions, no hidden fees, no premium tiers.
           </p>
         </div>
 
@@ -19,97 +18,112 @@ export default function Pricing() {
             <div className="absolute top-0 left-0 right-0 bg-green-500 text-black text-center py-2 font-bold">
               ✨ COMPLETELY FREE FOREVER
             </div>
-            <CardContent className="p-8 mt-8">
-              <div className="text-center mb-8">
-                <div className="flex items-center justify-center mb-4">
-                  <DollarSign className="w-16 h-16 text-green-400" />
-                  <span className="text-6xl font-bold text-green-400">0</span>
-                </div>
-                <h3 className="text-3xl font-bold mb-2">Free Forever</h3>
-                <p className="text-gray-300 text-lg">No costs, no subscriptions, no limits</p>
+
+            <CardContent className="pt-16 pb-12 px-12 text-center">
+              <div className="mb-8">
+                <div className="text-6xl font-bold mb-4 text-green-400">$0</div>
+                <div className="text-2xl text-gray-300">Forever and always</div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div className="grid md:grid-cols-2 gap-8 mb-12">
                 <div>
-                  <h4 className="text-xl font-bold mb-4 flex items-center">
-                    <Shield className="w-5 h-5 text-blue-400 mr-2" />
-                    Core Features
-                  </h4>
-                  <ul className="space-y-3">
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">Real-time transcription</span>
+                  <h3 className="text-2xl font-bold mb-6 text-white">What's Included</h3>
+                  <ul className="space-y-4 text-left">
+                    <li className="flex items-center space-x-3">
+                      <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200">Unlimited meeting recordings</span>
                     </li>
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">AI-enhanced notes</span>
+                    <li className="flex items-center space-x-3">
+                      <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200">Real-time AI transcription</span>
                     </li>
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">Local storage & privacy</span>
+                    <li className="flex items-center space-x-3">
+                      <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200">AI-enhanced meeting summaries</span>
                     </li>
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">Unlimited meetings</span>
+                    <li className="flex items-center space-x-3">
+                      <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200">Complete data privacy (local storage)</span>
                     </li>
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">Search & export</span>
+                    <li className="flex items-center space-x-3">
+                      <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200">Full source code access</span>
+                    </li>
+                    <li className="flex items-center space-x-3">
+                      <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200">Customizable AI prompts</span>
+                    </li>
+                    <li className="flex items-center space-x-3">
+                      <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200">Regular updates and improvements</span>
                     </li>
                   </ul>
                 </div>
 
                 <div>
-                  <h4 className="text-xl font-bold mb-4 flex items-center">
-                    <Key className="w-5 h-5 text-yellow-400 mr-2" />
-                    Your API Keys
-                  </h4>
-                  <ul className="space-y-3">
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">Bring your own OpenAI key</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">~$0.20/hour usage cost</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">Full control over your data</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">No middleman or markup</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300">Stored securely on-device</span>
-                    </li>
-                  </ul>
+                  <h3 className="text-2xl font-bold mb-6 text-white">How It Works</h3>
+                  <div className="space-y-6 text-left">
+                    <div className="flex items-start space-x-3">
+                      <Key className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                      <div>
+                        <h4 className="font-semibold text-white mb-1">Bring Your Own API Keys</h4>
+                        <p className="text-gray-300 text-sm">
+                          Use your OpenAI API key. Pay only for what you use, directly to the providers.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <Shield className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
+                      <div>
+                        <h4 className="font-semibold text-white mb-1">Your Keys, Your Control</h4>
+                        <p className="text-gray-300 text-sm">
+                          API keys are stored securely on your device. We never see or store your credentials.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <DollarSign className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1" />
+                      <div>
+                        <h4 className="font-semibold text-white mb-1">Typical Costs</h4>
+                        <p className="text-gray-300 text-sm">
+                          ~$0.20/hour using gpt-4o-mini-transcribe for transcription and gpt-4.1-mini for summarization.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-gray-900/50 rounded-lg p-6 mb-8">
-                <h4 className="text-lg font-bold mb-3 text-center">💰 Cost Breakdown</h4>
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-green-400">$0</div>
-                    <div className="text-sm text-gray-400">App Cost</div>
+              <div className="bg-gray-900/50 rounded-xl p-6 mb-8">
+                <h4 className="text-xl font-bold mb-3 text-yellow-400">Compare to Alternatives</h4>
+                <div className="grid md:grid-cols-4 gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="font-semibold text-white">Meetingnotes</div>
+                    <div className="text-green-400">$0 + API costs</div>
+                    <div className="text-gray-400">~$0.20/hour</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-blue-400">~$0.20</div>
-                    <div className="text-sm text-gray-400">Per Hour (OpenAI)</div>
+                  <div className="text-center">
+                    <div className="font-semibold text-white">Granola</div>
+                    <div className="text-red-400">$18/month</div>
+                    <div className="text-gray-400">Subscription required</div>
                   </div>
-                </div>
-                <div className="mt-4 text-center text-sm text-gray-400">
-                  <strong>Example:</strong> 10 hours of meetings = ~$2.00 total
+                  <div className="text-center">
+                    <div className="font-semibold text-white">Fathom</div>
+                    <div className="text-red-400">$15/month</div>
+                    <div className="text-gray-400">Bot joins meetings</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-white">Fireflies</div>
+                    <div className="text-red-400">$10/month</div>
+                    <div className="text-gray-400">Storage limits</div>
+                  </div>
                 </div>
               </div>
 
-              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-lg px-8 py-4" asChild>
-                <a href="/download">
-                  Download Free Now
-                </a>
+              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-lg px-8 py-4">
+                Download Free Now
               </Button>
 
               <p className="text-sm text-gray-400 mt-4">

@@ -31,16 +31,16 @@ export default function HowItWorks() {
   ]
 
   return (
-    <section id="how-it-works" className="py-20 px-4 bg-black">
+    <section id="how-it-works" className="py-12 px-4 bg-black">
       <div className="container mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">How meetingnotes Works</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">How Meetingnotes Works</h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Get started in minutes with our simple, privacy-first approach to meeting notes.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
             <Card key={index} className="bg-gray-900/50 border-gray-800 text-center">
               <CardContent className="p-8">
@@ -55,12 +55,12 @@ export default function HowItWorks() {
           ))}
         </div>
 
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-8 border border-gray-700 text-center">
+        {/* <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-8 border border-gray-700 text-center">
           <blockquote className="text-2xl font-medium text-gray-200 mb-4">
-            "meetingnotes saves me hours every week—best part? It's free and open source!"
+            "Meetingnotes saves me hours every week—best part? It's free and open source!"
           </blockquote>
           <cite className="text-blue-400 font-semibold">– Open-Source Contributor</cite>
-        </div>
+        </div> */}
       </div>
     </section>
   )

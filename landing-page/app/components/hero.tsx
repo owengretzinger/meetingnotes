@@ -4,7 +4,7 @@ import { Download, Github, Star, Shield, Code, Zap } from "lucide-react"
 
 export default function Hero() {
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
+    <section className="pb-6 pt-12 px-4 bg-gradient-to-b from-black to-gray-900">
       <div className="container mx-auto text-center">
         <Badge variant="secondary" className="mb-8 bg-blue-600/20 text-blue-400 border-blue-600/30">
           ✨ Open-Source Alternative to Granola – Completely Free!
@@ -83,7 +83,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-gray-400">
+        {/* <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-gray-400">
           <div className="flex items-center space-x-1">
             <Star className="w-4 h-4 text-yellow-500" />
             <span>1.2k stars on GitHub</span>
@@ -92,7 +92,7 @@ export default function Hero() {
           <span>500+ downloads</span>
           <span>•</span>
           <span>50+ contributors</span>
-        </div>
+        </div> */}
       </div>
     </section>
   )
