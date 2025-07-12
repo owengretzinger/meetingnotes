@@ -147,7 +147,8 @@ struct MeetingDetailView: View {
             Text("Are you sure you want to delete this meeting? This action cannot be undone.")
         }
         .onDisappear {
-            viewModel.saveMeeting()
+            // Auto-delete empty meetings when leaving, otherwise save
+            viewModel.deleteIfEmpty()
         }
     }
     

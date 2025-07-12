@@ -23,7 +23,7 @@ struct RenderedNotesView: View {
         } else if let level = headingLevel(for: trimmed) {
             let content = String(trimmed.dropFirst(level + 1)).trimmingCharacters(in: .whitespaces)
             Text(content)
-                .font(.system(size: CGFloat(28 - level * 4), weight: .bold))
+                .font(.system(size: CGFloat(18 - level * 2), weight: .bold))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
         } else if let (indentLevel, bullet, content) = listItemInfo(for: line) {

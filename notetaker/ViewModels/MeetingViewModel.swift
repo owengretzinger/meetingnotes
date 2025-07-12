@@ -26,12 +26,21 @@ class MeetingViewModel: ObservableObject {
     @Published var isGeneratingNotes = false
     @Published var errorMessage: String?
     @Published var isRecording = false
-    @Published var selectedTab: MeetingViewTab = .myNotes
+    @Published var selectedTab: MeetingViewTab = .transcript  // Default to transcript tab
     @Published var recordingState: RecordingState = .idle
     @Published var isDeleted = false
     
     private let audioManager = AudioManager()
     private var cancellables = Set<AnyCancellable>()
+    private var isNewMeeting = false
+    
+    // Computed property to check if meeting is empty
+    var isEmpty: Bool {
+        return meeting.transcriptChunks.isEmpty && 
+               meeting.userNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
+               meeting.generatedNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               meeting.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     init(meeting: Meeting = Meeting()) {
         // Load the latest version of the meeting from storage if it exists
@@ -41,6 +50,16 @@ class MeetingViewModel: ObservableObject {
         } else {
             print("🆕 Using provided meeting: \(meeting.id)")
             self.meeting = meeting
+        }
+        
+        // Detect if this is a new meeting based on content, not storage existence
+        isNewMeeting = isEmpty
+        
+        // Set initial tab based on notes existence
+        if !self.meeting.generatedNotes.isEmpty {
+            selectedTab = .enhancedNotes
+        } else {
+            selectedTab = .transcript
         }
         
         // NEW: Seed the audio manager with any existing transcript chunks so the initial
@@ -70,6 +89,12 @@ class MeetingViewModel: ObservableObject {
                 self?.saveMeeting()
             }
             .store(in: &cancellables)
+        
+        // Auto-start recording for empty meetings
+        if isNewMeeting {
+            print("🚀 Auto-starting recording for empty meeting")
+            startRecording()
+        }
     }
     
     private func updateRecordingState() {
@@ -107,6 +132,16 @@ class MeetingViewModel: ObservableObject {
     func stopRecording() {
         audioManager.stopRecording()
         saveMeeting()
+        
+        // Auto-generate notes if there's a transcript and no existing notes
+        if !meeting.formattedTranscript.isEmpty && meeting.generatedNotes.isEmpty {
+            print("🤖 Auto-generating notes after recording stopped")
+            // Switch to enhanced notes tab immediately when starting generation
+            selectedTab = .enhancedNotes
+            Task {
+                await generateNotes()
+            }
+        }
     }
     
     func generateNotes() async {
@@ -173,6 +208,15 @@ class MeetingViewModel: ObservableObject {
         if success {
             isDeleted = true
             NotificationCenter.default.post(name: .meetingDeleted, object: meeting)
+        }
+    }
+    
+    func deleteIfEmpty() {
+        if isEmpty {
+            print("🗑️ Auto-deleting empty meeting")
+            deleteMeeting()
+        } else {
+            saveMeeting()
         }
     }
 } 
