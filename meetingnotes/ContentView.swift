@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  notetaker
+//  meetingnotes
 //
 //  Created by Owen Gretzinger on 2025-07-10.
 //

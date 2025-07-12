@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
 	<key>NSAudioCaptureUsageDescription</key>
-	<string>Notetaker needs access to capture system audio for transcription.</string>
+	<string>Meetingnotes needs access to capture system audio for transcription.</string>
 	<key>NSScreenCaptureUsageDescription</key>
-	<string>Notetaker needs screen recording permission to capture system audio for transcription.</string>
+	<string>Meetingnotes needs screen recording permission to capture system audio for transcription.</string>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/owengretzinger/notetaker/main/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/owengretzinger/meetingnotes/main/appcast.xml</string>
 </dict>
 </plist>

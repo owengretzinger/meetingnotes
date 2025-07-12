@@ -1,6 +1,6 @@
 //
-//  notetakerApp.swift
-//  notetaker
+//  MeetingnotesApp.swift
+//  meetingnotes
 //
 //  Created by Owen Gretzinger on 2025-07-10.
 //
@@ -9,7 +9,7 @@ import SwiftUI
 import Sparkle
 
 @main
-struct notetakerApp: App {
+struct MeetingnotesApp: App {
     private let updaterController: SPUStandardUpdaterController
 
     init() {

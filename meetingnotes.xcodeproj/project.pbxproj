@@ -12,26 +12,26 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CC5718182E201D8D0042BA88 /* notetaker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = notetaker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC5718182E201D8D0042BA88 /* meetingnotes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = meetingnotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		CC5718352E201EAA0042BA88 /* Exceptions for "notetaker" folder in "notetaker" target */ = {
+		CC5718352E201EAA0042BA88 /* Exceptions for "meetingnotes" folder in "meetingnotes" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = CC5718172E201D8D0042BA88 /* notetaker */;
+			target = CC5718172E201D8D0042BA88 /* meetingnotes */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		CC57181A2E201D8D0042BA88 /* notetaker */ = {
+		CC57181A2E201D8D0042BA88 /* meetingnotes */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				CC5718352E201EAA0042BA88 /* Exceptions for "notetaker" folder in "notetaker" target */,
+				CC5718352E201EAA0042BA88 /* Exceptions for "meetingnotes" folder in "meetingnotes" target */,
 			);
-			path = notetaker;
+			path = meetingnotes;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -52,7 +52,7 @@
 		CC57180F2E201D8D0042BA88 = {
 			isa = PBXGroup;
 			children = (
-				CC57181A2E201D8D0042BA88 /* notetaker */,
+				CC57181A2E201D8D0042BA88 /* meetingnotes */,
 				CC7816BF2E22093900101A90 /* Frameworks */,
 				CC5718192E201D8D0042BA88 /* Products */,
 			);
@@ -61,7 +61,7 @@
 		CC5718192E201D8D0042BA88 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CC5718182E201D8D0042BA88 /* notetaker.app */,
+				CC5718182E201D8D0042BA88 /* meetingnotes.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -76,9 +76,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CC5718172E201D8D0042BA88 /* notetaker */ = {
+		CC5718172E201D8D0042BA88 /* meetingnotes */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CC5718272E201D8E0042BA88 /* Build configuration list for PBXNativeTarget "notetaker" */;
+			buildConfigurationList = CC5718272E201D8E0042BA88 /* Build configuration list for PBXNativeTarget "meetingnotes" */;
 			buildPhases = (
 				CC5718142E201D8D0042BA88 /* Sources */,
 				CC5718152E201D8D0042BA88 /* Frameworks */,
@@ -89,15 +89,15 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				CC57181A2E201D8D0042BA88 /* notetaker */,
+				CC57181A2E201D8D0042BA88 /* meetingnotes */,
 			);
-			name = notetaker;
+			name = meetingnotes;
 			packageProductDependencies = (
 				CC5718372E2020490042BA88 /* OpenAI */,
 				CCBA53E62E212F1C00469D84 /* Sparkle */,
 			);
-			productName = notetaker;
-			productReference = CC5718182E201D8D0042BA88 /* notetaker.app */;
+			productName = meetingnotes;
+			productReference = CC5718182E201D8D0042BA88 /* meetingnotes.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -115,7 +115,7 @@
 					};
 				};
 			};
-			buildConfigurationList = CC5718132E201D8D0042BA88 /* Build configuration list for PBXProject "notetaker" */;
+			buildConfigurationList = CC5718132E201D8D0042BA88 /* Build configuration list for PBXProject "meetingnotes" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -133,7 +133,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CC5718172E201D8D0042BA88 /* notetaker */,
+				CC5718172E201D8D0042BA88 /* meetingnotes */,
 			);
 		};
 /* End PBXProject section */
@@ -285,26 +285,26 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = notetaker/notetaker.entitlements;
+				CODE_SIGN_ENTITLEMENTS = meetingnotes/meetingnotes.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"notetaker/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"meetingnotes/Preview Content\"";
 				DEVELOPMENT_TEAM = ML6HYR5LUR;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = notetaker/Info.plist;
+				INFOPLIST_FILE = meetingnotes/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Notetaker needs access to your microphone for transcription.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Meetingnotes needs access to your microphone for transcription.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = owen.notetaker;
+				PRODUCT_BUNDLE_IDENTIFIER = owen.meetingnotes;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -318,26 +318,26 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = notetaker/notetaker.entitlements;
+				CODE_SIGN_ENTITLEMENTS = meetingnotes/meetingnotes.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"notetaker/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"meetingnotes/Preview Content\"";
 				DEVELOPMENT_TEAM = ML6HYR5LUR;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = notetaker/Info.plist;
+				INFOPLIST_FILE = meetingnotes/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Notetaker needs access to your microphone for transcription.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Meetingnotes needs access to your microphone for transcription.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = owen.notetaker;
+				PRODUCT_BUNDLE_IDENTIFIER = owen.meetingnotes;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -347,7 +347,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CC5718132E201D8D0042BA88 /* Build configuration list for PBXProject "notetaker" */ = {
+		CC5718132E201D8D0042BA88 /* Build configuration list for PBXProject "meetingnotes" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CC5718252E201D8E0042BA88 /* Debug */,
@@ -356,7 +356,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CC5718272E201D8E0042BA88 /* Build configuration list for PBXNativeTarget "notetaker" */ = {
+		CC5718272E201D8E0042BA88 /* Build configuration list for PBXNativeTarget "meetingnotes" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CC5718282E201D8E0042BA88 /* Debug */,
