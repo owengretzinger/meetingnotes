@@ -41,13 +41,17 @@ export default function Community() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button size="lg" className="bg-gray-800 hover:bg-gray-700 border border-gray-600">
-            <Star className="w-5 h-5 mr-2" />
-            Star on GitHub
+          <Button size="lg" className="bg-gray-800 hover:bg-gray-700 border border-gray-600" asChild>
+            <a href="https://github.com/owengretzinger/meetingnotes">
+              <Star className="w-5 h-5 mr-2" />
+              Star on GitHub
+            </a>
           </Button>
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-            <GitFork className="w-5 h-5 mr-2" />
-            Fork & Contribute
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700" asChild>
+            <a href="https://github.com/owengretzinger/meetingnotes/fork">
+              <GitFork className="w-5 h-5 mr-2" />
+              Fork & Contribute
+            </a>
           </Button>
         </div>
 

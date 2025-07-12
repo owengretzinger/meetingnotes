@@ -1,11 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, Github, Star, Shield, Code, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Download, Github, Star, Shield, Code, Zap } from "lucide-react";
 
 export default function Hero() {
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
       <div className="container mx-auto text-center">
+        <Badge
+          variant="secondary"
+          className="mb-8 bg-blue-600/20 text-blue-400 border-blue-600/30"
+        >
         <Badge
           variant="secondary"
           className="mb-8 bg-blue-600/20 text-blue-400 border-blue-600/30"
@@ -21,6 +28,8 @@ export default function Hero() {
           Engineers
         </h1>
 
+        <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+          Just you and your OpenAI API key. Go crazy.
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
           Just you and your OpenAI API key. Go crazy.
         </p>
@@ -44,20 +53,22 @@ export default function Hero() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-          <Button
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4"
-          >
-            <Download className="w-5 h-5 mr-2" />
-            Download for macOS
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4" asChild>
+            <a href="/download">
+              <Download className="w-5 h-5 mr-2" />
+              Download for macOS
+            </a>
           </Button>
           <Button
             variant="outline"
             size="lg"
             className="border-gray-600 text-gray-300 hover:bg-gray-800 text-lg px-8 py-4 bg-transparent"
+            asChild
           >
-            <Github className="w-5 h-5 mr-2" />
-            View on GitHub
+            <a href="https://github.com/owengretzinger/meetingnotes">
+              <Github className="w-5 h-5 mr-2" />
+              View on GitHub
+            </a>
           </Button>
         </div>
 
@@ -66,6 +77,11 @@ export default function Hero() {
             <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-600">
               <div className="text-center">
                 <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="w-8 h-8 text-blue-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                   <svg
                     className="w-8 h-8 text-blue-400"
                     fill="currentColor"
@@ -81,10 +97,15 @@ export default function Hero() {
                 <h3 className="text-xl font-semibold text-white mb-2">
                   Demo Video
                 </h3>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  Demo Video
+                </h3>
                 <p className="text-gray-400">See Meetingnotes in action</p>
               </div>
             </div>
             <p className="text-sm text-gray-400 mt-4 text-center">
+              Watch how Meetingnotes transcribes meetings and generates
+              AI-enhanced notes in real-time
               Watch how Meetingnotes transcribes meetings and generates
               AI-enhanced notes in real-time
             </p>
@@ -103,5 +124,6 @@ export default function Hero() {
         </div>
       </div>
     </section>
+  );
   );
 }
