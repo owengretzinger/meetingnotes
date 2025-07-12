@@ -1,20 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Download, AlertTriangle, Calendar, DollarSign, Shield, MessageSquare } from "lucide-react"
+import Header from "../components/header"
 
 export default function DownloadPage() {
   return (
     <div className="min-h-screen bg-black text-white">
+      <Header />
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Download Meetingnotes
-            </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              You can download it right now, but there are some important instructions.
-            </p>
-          </div>
 
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             <Card className="bg-gray-900/50 border-gray-800">
@@ -46,7 +40,7 @@ export default function DownloadPage() {
                   Ready to try it out? Download the latest version of Meetingnotes for macOS.
                 </p>
                 <Button size="lg" className="bg-green-600 hover:bg-green-700 w-full" asChild>
-                  <a href="/releases/Notetaker-1.0.dmg" download>
+                  <a href="https://github.com/owengretzinger/meetingnotes/releases" target="_blank" rel="noopener noreferrer">
                     <Download className="w-5 h-5 mr-2" />
                     Download v1.0
                   </a>

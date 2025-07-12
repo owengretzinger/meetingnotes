@@ -5,14 +5,14 @@ export default function Header() {
   return (
     <header className="border-b border-gray-800 bg-black/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+        <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
           <img
             src="/logo.svg"
             alt="Meetingnotes logo"
             className="w-8 h-8"
           />
           <span className="text-xl font-bold">Meetingnotes</span>
-        </div>
+        </a>
 
         <nav className="hidden md:flex items-center space-x-8">
           <a href="#features" className="text-gray-300 hover:text-white transition-colors">
