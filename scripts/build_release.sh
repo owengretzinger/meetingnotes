@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# Build and Release Script for Notetaker
+# Build and Release Script for Meetingnotes
 # This script builds the app, creates a DMG, and generates the appcast
 
 set -e  # Exit on any error
 
 # Configuration
-APP_NAME="Notetaker"
-BUNDLE_ID="owen.notetaker"
-VERSION=$(grep -m1 "MARKETING_VERSION" notetaker.xcodeproj/project.pbxproj | sed 's/.*= \(.*\);/\1/')
+APP_NAME="Meetingnotes"
+BUNDLE_ID="owen.meetingnotes"
+VERSION=$(grep -m1 "MARKETING_VERSION" Meetingnotes.xcodeproj/project.pbxproj | sed 's/.*= \(.*\);/\1/')
 SIGN_ID="-"   # always use an ad-hoc signature
 
 if [ -z "$VERSION" ]; then
     echo "❌ Could not determine version from project file"
-    echo "   Make sure notetaker.xcodeproj/project.pbxproj exists and contains MARKETING_VERSION"
+    echo "   Make sure Meetingnotes.xcodeproj/project.pbxproj exists and contains MARKETING_VERSION"
     exit 1
 fi
 BUILD_DIR="$(pwd)/build"
@@ -34,8 +34,8 @@ ARCHS="arm64 x86_64"
 
 echo "📦 Building universal app (archs: $ARCHS)..."
 xcodebuild \
-  -project notetaker.xcodeproj \
-  -scheme notetaker \
+  -project Meetingnotes.xcodeproj \
+  -scheme meetingnotes \
   -configuration Release \
   -derivedDataPath "${BUILD_DIR}" \
   -destination 'generic/platform=macOS' \
@@ -91,7 +91,7 @@ echo "✅ DMG created: $RELEASES_DIR/$DMG_NAME"
 # Generate appcast
 echo "📡 Generating appcast..."
 /opt/homebrew/Caskroom/sparkle/2.7.1/bin/generate_appcast "$RELEASES_DIR" \
-    --download-url-prefix "https://github.com/owengretzinger/notetaker/releases/download/v${VERSION}/" \
+    --download-url-prefix "https://github.com/owengretzinger/meetingnotes/releases/download/v${VERSION}/" \
     -o "appcast.xml"
 
 echo "✅ Appcast generated: appcast.xml"

@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Version Update Script for Notetaker
+# Version Update Script for Meetingnotes
 # Usage: ./update_version.sh [major|minor|patch|build] [custom_version]
 
 set -e
 
-PROJECT_FILE="notetaker.xcodeproj/project.pbxproj"
+PROJECT_FILE="Meetingnotes.xcodeproj/project.pbxproj"
 CURRENT_MARKETING_VERSION=$(grep -m1 "MARKETING_VERSION" "$PROJECT_FILE" | sed 's/.*= \(.*\);/\1/')
 CURRENT_BUILD_VERSION=$(grep -m1 "CURRENT_PROJECT_VERSION" "$PROJECT_FILE" | sed 's/.*= \(.*\);/\1/')
 
