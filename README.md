@@ -19,10 +19,11 @@ Implemented:
 - Use your own API key
 - Auto updates
 - Text formatting
+- Different note templates
 
 Todo:
 
-- Different note templates
+- Integrate with Posthog for anonymous analytics
 
 Later:
 

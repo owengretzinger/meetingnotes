@@ -15,11 +15,14 @@ class NotesGenerator {
     ///   - meeting: The meeting object containing all necessary data
     ///   - userBlurb: Information about the user for context
     ///   - systemPrompt: The system prompt template with placeholders
+    ///   - templateId: Optional template ID to use for generating notes
     /// - Returns: AsyncStream of partial generated notes
     func generateNotesStream(meeting: Meeting,
                             userBlurb: String,
-                            systemPrompt: String) -> AsyncStream<String> {
-        return AsyncStream { continuation in
+                            systemPrompt: String,
+                            templateId: UUID? = nil) -> AsyncStream<String> {
+        
+        return AsyncStream<String>(String.self) { continuation in
             Task {
                 do {
                     guard let apiKey = KeychainHelper.shared.get(forKey: "openAIKey"), !apiKey.isEmpty else {
@@ -34,13 +37,30 @@ class NotesGenerator {
                     dateFormatter.dateStyle = .full
                     dateFormatter.timeStyle = .short
                     
+                    // Load template content
+                    var templateContent = ""
+                    if let templateId = templateId {
+                        let templates = LocalStorageManager.shared.loadTemplates()
+                        if let template = templates.first(where: { $0.id == templateId }) {
+                            templateContent = template.formattedContent
+                        }
+                    }
+                    
+                    // If no template content, use default
+                    if templateContent.isEmpty {
+                        // No template content found, finish the stream
+                        continuation.finish()
+                        return
+                    }
+                    
                     // Prepare template variables
                     let templateVariables: [String: String] = [
                         "meeting_title": meeting.title.isEmpty ? "Untitled Meeting" : meeting.title,
                         "meeting_date": dateFormatter.string(from: meeting.date),
                         "transcript": meeting.formattedTranscript,
                         "user_blurb": userBlurb,
-                        "user_notes": meeting.userNotes
+                        "user_notes": meeting.userNotes,
+                        "template_content": templateContent
                     ]
                     
                     // Process the system prompt template

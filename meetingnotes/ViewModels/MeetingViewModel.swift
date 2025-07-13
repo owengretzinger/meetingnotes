@@ -29,6 +29,8 @@ class MeetingViewModel: ObservableObject {
     @Published var selectedTab: MeetingViewTab = .transcript  // Default to transcript tab
     @Published var recordingState: RecordingState = .idle
     @Published var isDeleted = false
+    @Published var templates: [NoteTemplate] = []
+    @Published var selectedTemplateId: UUID?
     
     private let audioManager = AudioManager()
     private var cancellables = Set<AnyCancellable>()
@@ -61,6 +63,20 @@ class MeetingViewModel: ObservableObject {
         } else {
             selectedTab = .transcript
         }
+        
+        // Load templates and selected template
+        loadTemplates()
+        // Observe template selection: save to meeting and regenerate notes on changes (skip initial)
+        $selectedTemplateId
+            .dropFirst()
+            .sink { [weak self] newTemplateId in
+                guard let self = self else { return }
+                self.meeting.templateId = newTemplateId
+                Task {
+                    await self.generateNotes()
+                }
+            }
+            .store(in: &cancellables)
         
         // NEW: Seed the audio manager with any existing transcript chunks so the initial
         // published value doesn't overwrite the saved transcript with an empty array.
@@ -144,6 +160,17 @@ class MeetingViewModel: ObservableObject {
         }
     }
     
+    func loadTemplates() {
+        templates = LocalStorageManager.shared.loadTemplates()
+
+        // Load per-meeting template or default to Standard Meeting
+        if let meetingTemplateId = meeting.templateId {
+            selectedTemplateId = meetingTemplateId
+        } else if let defaultTemplate = templates.first(where: { $0.title == "Standard Meeting" }) {
+            selectedTemplateId = defaultTemplate.id
+        }
+    }
+    
     func generateNotes() async {
         isGeneratingNotes = true
         errorMessage = nil
@@ -151,26 +178,23 @@ class MeetingViewModel: ObservableObject {
         // Clear existing notes for streaming
         meeting.generatedNotes = ""
         
-        do {
-            // Load settings for generation
-            let userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
-            let systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt()
-            
-            // Use streaming generation
-            let stream = NotesGenerator.shared.generateNotesStream(
-                meeting: meeting,
-                userBlurb: userBlurb,
-                systemPrompt: systemPrompt
-            )
-            
-            for await chunk in stream {
-                meeting.generatedNotes += chunk
-            }
-            
-            saveMeeting()
-        } catch {
-            errorMessage = "Failed to generate notes: \(error.localizedDescription)"
+        // Load settings for generation
+        let userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
+        let systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt()
+        
+        // Use streaming generation
+        let stream = NotesGenerator.shared.generateNotesStream(
+            meeting: meeting,
+            userBlurb: userBlurb,
+            systemPrompt: systemPrompt,
+            templateId: selectedTemplateId
+        )
+        
+        for await chunk in stream {
+            meeting.generatedNotes += chunk
         }
+        
+        saveMeeting()
         
         isGeneratingNotes = false
     }

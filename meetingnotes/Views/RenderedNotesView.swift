@@ -24,7 +24,7 @@ struct RenderedNotesView: View {
             let content = String(trimmed.dropFirst(level + 1)).trimmingCharacters(in: .whitespaces)
             Text(content)
                 .font(.system(size: CGFloat(18 - level * 2), weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
         } else if let (indentLevel, bullet, content) = listItemInfo(for: line) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {

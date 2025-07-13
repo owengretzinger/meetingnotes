@@ -4,6 +4,7 @@ struct Settings: Codable {
     var openAIKey: String
     var userBlurb: String
     var systemPrompt: String
+    var selectedTemplateId: UUID?
     
     // System prompt default loading
     static func defaultSystemPrompt() -> String {
@@ -34,11 +35,11 @@ struct Settings: Codable {
     
     init(openAIKey: String = "",
          userBlurb: String = "",
-         systemPrompt: String = "") {
+         systemPrompt: String = "",
+         selectedTemplateId: UUID? = nil) {
         self.openAIKey = openAIKey
         self.userBlurb = userBlurb
         self.systemPrompt = systemPrompt.isEmpty ? Settings.defaultSystemPrompt() : systemPrompt
+        self.selectedTemplateId = selectedTemplateId
     }
-    
-
 } 

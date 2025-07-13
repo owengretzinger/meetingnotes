@@ -215,6 +215,15 @@ struct MeetingDetailView: View {
                     ProgressView()
                         .scaleEffect(0.7)
                 } else {
+                    // Template selector
+                    Picker("", selection: $viewModel.selectedTemplateId) {
+                        ForEach(viewModel.templates) { template in
+                            Text(template.title).tag(template.id as UUID?)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 200)
+                    
                     Button(action: {
                         Task {
                             await viewModel.generateNotes()

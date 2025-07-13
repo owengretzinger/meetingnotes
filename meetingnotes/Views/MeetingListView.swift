@@ -3,7 +3,6 @@ import SwiftUI
 struct MeetingListView: View {
     @StateObject private var viewModel = MeetingListViewModel()
     @State private var navigationPath = NavigationPath()
-    @State private var showingSettings = false
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -57,7 +56,7 @@ struct MeetingListView: View {
                     .frame(width: 220)
                     // Settings button (middle)
                     Button {
-                        showingSettings = true
+                        navigationPath.append("settings")
                     } label: {
                         Image(systemName: "gearshape")
                     }
@@ -70,11 +69,15 @@ struct MeetingListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView(viewModel: SettingsViewModel())
-            }
             .navigationDestination(for: Meeting.self) { meeting in
                 MeetingDetailView(meeting: meeting)
+            }
+            .navigationDestination(for: String.self) { path in
+                if path == "settings" {
+                    SettingsView(viewModel: SettingsViewModel(), navigationPath: $navigationPath)
+                } else if path == "templates" {
+                    TemplateListView()
+                }
             }
         }
         .overlay {
