@@ -148,16 +148,24 @@ class MeetingViewModel: ObservableObject {
         isGeneratingNotes = true
         errorMessage = nil
         
+        // Clear existing notes for streaming
+        meeting.generatedNotes = ""
+        
         do {
             // Load settings for generation
             let userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
             let systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt()
             
-            meeting.generatedNotes = try await NotesGenerator.shared.generateNotes(
+            // Use streaming generation
+            let stream = NotesGenerator.shared.generateNotesStream(
                 meeting: meeting,
                 userBlurb: userBlurb,
                 systemPrompt: systemPrompt
             )
+            
+            for await chunk in stream {
+                meeting.generatedNotes += chunk
+            }
             
             saveMeeting()
         } catch {
