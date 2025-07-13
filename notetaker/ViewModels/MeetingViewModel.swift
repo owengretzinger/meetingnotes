@@ -29,6 +29,8 @@ class MeetingViewModel: ObservableObject {
     @Published var selectedTab: MeetingViewTab = .transcript  // Default to transcript tab
     @Published var recordingState: RecordingState = .idle
     @Published var isDeleted = false
+    @Published var availableTemplates: [Template] = []
+    @Published var selectedTemplateId: UUID?
     
     private let audioManager = AudioManager()
     private var cancellables = Set<AnyCancellable>()
@@ -61,6 +63,9 @@ class MeetingViewModel: ObservableObject {
         } else {
             selectedTab = .transcript
         }
+        
+        // Load templates from settings
+        loadTemplates()
         
         // NEW: Seed the audio manager with any existing transcript chunks so the initial
         // published value doesn't overwrite the saved transcript with an empty array.
@@ -151,7 +156,7 @@ class MeetingViewModel: ObservableObject {
         do {
             // Load settings for generation
             let userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
-            let systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt()
+            let systemPrompt = getSystemPromptWithTemplate()
             
             meeting.generatedNotes = try await NotesGenerator.shared.generateNotes(
                 meeting: meeting,
@@ -218,5 +223,52 @@ class MeetingViewModel: ObservableObject {
         } else {
             saveMeeting()
         }
+    }
+    
+    // Template-related methods
+    func loadTemplates() {
+        if let templatesData = KeychainHelper.shared.get(forKey: "templates")?.data(using: .utf8),
+           let loadedTemplates = try? JSONDecoder().decode([Template].self, from: templatesData) {
+            availableTemplates = loadedTemplates
+        } else {
+            availableTemplates = Template.defaultTemplates
+        }
+        
+        // Load selected template ID - first check if meeting has a specific template
+        if let meetingTemplateId = meeting.selectedTemplateId {
+            self.selectedTemplateId = meetingTemplateId
+        } else if let selectedTemplateIdString = KeychainHelper.shared.get(forKey: "selectedTemplateId"),
+                  let selectedTemplateId = UUID(uuidString: selectedTemplateIdString) {
+            self.selectedTemplateId = selectedTemplateId
+            // Update meeting to match global selection
+            meeting.selectedTemplateId = selectedTemplateId
+        } else {
+            let defaultTemplateId = availableTemplates.first?.id
+            self.selectedTemplateId = defaultTemplateId
+            meeting.selectedTemplateId = defaultTemplateId
+        }
+    }
+    
+    func selectTemplate(_ templateId: UUID) {
+        selectedTemplateId = templateId
+        meeting.selectedTemplateId = templateId
+        // Save the selection globally
+        KeychainHelper.shared.save(templateId.uuidString, forKey: "selectedTemplateId")
+        // Save the meeting with the updated template selection
+        saveMeeting()
+    }
+    
+    var selectedTemplateName: String {
+        guard let selectedId = selectedTemplateId else { return "General" }
+        return availableTemplates.first { $0.id == selectedId }?.title ?? "General"
+    }
+    
+    private func getSystemPromptWithTemplate() -> String {
+        var settings = Settings()
+        settings.userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
+        settings.templates = availableTemplates
+        settings.selectedTemplateId = selectedTemplateId
+        
+        return settings.getSystemPromptWithTemplate()
     }
 } 

@@ -69,11 +69,12 @@ struct Meeting: Codable, Identifiable, Hashable {
     var transcriptChunks: [TranscriptChunk]
     var userNotes: String
     var generatedNotes: String
+    var selectedTemplateId: UUID?
     // MARK: - Data versioning
     /// Version of this Meeting record on disk. Useful for migration.
     var dataVersion: Int
     /// Current app data version. Increment whenever you make a breaking change to `Meeting` that requires migration.
-    static let currentDataVersion = 1
+    static let currentDataVersion = 2
     
     init(id: UUID = UUID(), 
          date: Date = Date(),
@@ -81,6 +82,7 @@ struct Meeting: Codable, Identifiable, Hashable {
          transcriptChunks: [TranscriptChunk] = [],
          userNotes: String = "", 
          generatedNotes: String = "",
+         selectedTemplateId: UUID? = nil,
          dataVersion: Int = Meeting.currentDataVersion) {
         self.id = id
         self.date = date
@@ -88,6 +90,7 @@ struct Meeting: Codable, Identifiable, Hashable {
         self.transcriptChunks = transcriptChunks
         self.userNotes = userNotes
         self.generatedNotes = generatedNotes
+        self.selectedTemplateId = selectedTemplateId
         self.dataVersion = dataVersion
     }
     

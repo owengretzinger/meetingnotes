@@ -211,6 +211,33 @@ struct MeetingDetailView: View {
                 
                 Spacer()
                 
+                // Template selector
+                Menu {
+                    ForEach(viewModel.availableTemplates) { template in
+                        Button(action: {
+                            viewModel.selectTemplate(template.id)
+                        }) {
+                            HStack {
+                                Text(template.title)
+                                if viewModel.selectedTemplateId == template.id {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "doc.text")
+                        Text(viewModel.selectedTemplateName)
+                    }
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                
                 if viewModel.isGeneratingNotes {
                     ProgressView()
                         .scaleEffect(0.7)
