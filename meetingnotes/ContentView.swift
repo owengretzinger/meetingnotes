@@ -8,10 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var settingsViewModel = SettingsViewModel()
     @State private var showingSettings = false
     
     var body: some View {
-        MeetingListView()
+        Group {
+            if !settingsViewModel.settings.hasCompletedOnboarding {
+                OnboardingView(settingsViewModel: settingsViewModel)
+            } else {
+                MeetingListView(settingsViewModel: settingsViewModel)
+            }
+        }
+        .onAppear {
+            // Force load settings to check onboarding status
+            settingsViewModel.loadSettings()
+        }
     }
 }
 
