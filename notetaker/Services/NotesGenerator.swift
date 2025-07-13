@@ -15,10 +15,10 @@ class NotesGenerator {
     ///   - meeting: The meeting object containing all necessary data
     ///   - userBlurb: Information about the user for context
     ///   - systemPrompt: The system prompt template with placeholders
-    /// - Returns: Generated meeting notes
+    /// - Returns: Generated meeting notes and token usage info
     func generateNotes(meeting: Meeting,
                       userBlurb: String,
-                      systemPrompt: String) async throws -> String {
+                      systemPrompt: String) async throws -> (notes: String, costInfo: MeetingCostInfo) {
         
         guard let apiKey = KeychainHelper.shared.get(forKey: "openAIKey"), !apiKey.isEmpty else {
             throw NSError(domain: "NotesGenerator", code: 1, userInfo: [NSLocalizedDescriptionKey: "OpenAI API key not configured"])
@@ -54,7 +54,21 @@ class NotesGenerator {
             throw NSError(domain: "NotesGenerator", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to generate notes"])
         }
         
-        return generatedNotes
+        // Extract token usage from the response
+        let inputTokens = result.usage?.promptTokens ?? 0
+        let outputTokens = result.usage?.completionTokens ?? 0
+        let cachedInputTokens = result.usage?.promptTokensCacheHitDetails?.cacheHitTokens ?? 0
+        
+        // Calculate cost info
+        let costInfo = CostCalculator.shared.createCostInfo(
+            transcriptionInputTokens: 0, // Transcription is handled separately
+            transcriptionOutputTokens: 0,
+            notesInputTokens: inputTokens,
+            notesOutputTokens: outputTokens,
+            notesCachedInputTokens: cachedInputTokens
+        )
+        
+        return (generatedNotes, costInfo)
     }
     
     /// Validates if OpenAI API key is configured

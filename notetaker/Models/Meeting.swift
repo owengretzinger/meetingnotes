@@ -69,11 +69,12 @@ struct Meeting: Codable, Identifiable, Hashable {
     var transcriptChunks: [TranscriptChunk]
     var userNotes: String
     var generatedNotes: String
+    var costInfo: MeetingCostInfo?
     // MARK: - Data versioning
     /// Version of this Meeting record on disk. Useful for migration.
     var dataVersion: Int
     /// Current app data version. Increment whenever you make a breaking change to `Meeting` that requires migration.
-    static let currentDataVersion = 1
+    static let currentDataVersion = 2
     
     init(id: UUID = UUID(), 
          date: Date = Date(),
@@ -81,6 +82,7 @@ struct Meeting: Codable, Identifiable, Hashable {
          transcriptChunks: [TranscriptChunk] = [],
          userNotes: String = "", 
          generatedNotes: String = "",
+         costInfo: MeetingCostInfo? = nil,
          dataVersion: Int = Meeting.currentDataVersion) {
         self.id = id
         self.date = date
@@ -88,6 +90,7 @@ struct Meeting: Codable, Identifiable, Hashable {
         self.transcriptChunks = transcriptChunks
         self.userNotes = userNotes
         self.generatedNotes = generatedNotes
+        self.costInfo = costInfo
         self.dataVersion = dataVersion
     }
     
@@ -194,5 +197,21 @@ struct Meeting: Codable, Identifiable, Hashable {
             .filter { $0.source == .system && $0.isFinal }
             .map { $0.text }
             .joined(separator: " ")
+    }
+    
+    // Computed property for estimated cost
+    var estimatedCost: Double {
+        return costInfo?.totalCost ?? CostCalculator.shared.estimateTotalCost(for: self)
+    }
+    
+    // Computed property for cost breakdown
+    var costBreakdown: (transcription: Double, notes: Double, total: Double) {
+        if let costInfo = costInfo {
+            return (costInfo.transcriptionCost, costInfo.notesCost, costInfo.totalCost)
+        } else {
+            let transcriptionCost = CostCalculator.shared.estimateTranscriptionCost(for: self)
+            let notesCost = CostCalculator.shared.estimateNotesGenerationCost(for: self)
+            return (transcriptionCost, notesCost, transcriptionCost + notesCost)
+        }
     }
 } 

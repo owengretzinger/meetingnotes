@@ -153,11 +153,29 @@ class MeetingViewModel: ObservableObject {
             let userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
             let systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt()
             
-            meeting.generatedNotes = try await NotesGenerator.shared.generateNotes(
+            let result = try await NotesGenerator.shared.generateNotes(
                 meeting: meeting,
                 userBlurb: userBlurb,
                 systemPrompt: systemPrompt
             )
+            
+            meeting.generatedNotes = result.notes
+            
+            // Update cost info, merging with existing transcription costs if any
+            if let existingCostInfo = meeting.costInfo {
+                meeting.costInfo = MeetingCostInfo(
+                    transcriptionInputTokens: existingCostInfo.transcriptionInputTokens,
+                    transcriptionOutputTokens: existingCostInfo.transcriptionOutputTokens,
+                    notesInputTokens: result.costInfo.notesInputTokens,
+                    notesOutputTokens: result.costInfo.notesOutputTokens,
+                    notesCachedInputTokens: result.costInfo.notesCachedInputTokens,
+                    transcriptionCost: existingCostInfo.transcriptionCost,
+                    notesCost: result.costInfo.notesCost,
+                    totalCost: existingCostInfo.transcriptionCost + result.costInfo.notesCost
+                )
+            } else {
+                meeting.costInfo = result.costInfo
+            }
             
             saveMeeting()
         } catch {

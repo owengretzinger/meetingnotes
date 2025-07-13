@@ -49,6 +49,9 @@ struct MeetingDetailView: View {
                 
                 Spacer()
                 
+                // Cost display
+                costDisplayView
+                
                 // Ellipsis menu
                 Menu {
                     Button("Delete Meeting", role: .destructive) {
@@ -159,6 +162,51 @@ struct MeetingDetailView: View {
     }
     
     // MARK: - Content Views
+    
+    private var costDisplayView: some View {
+        let costBreakdown = viewModel.meeting.costBreakdown
+        let totalCost = costBreakdown.total
+        
+        return HStack(spacing: 8) {
+            Image(systemName: "dollarsign.circle")
+                .foregroundColor(.secondary)
+                .font(.caption)
+            
+            if totalCost > 0 {
+                Text(String(format: "$%.3f", totalCost))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .onTapGesture {
+                        // Show detailed cost breakdown on tap
+                        showCostBreakdown()
+                    }
+            } else {
+                Text("$0.000")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(6)
+    }
+    
+    private func showCostBreakdown() {
+        let costBreakdown = viewModel.meeting.costBreakdown
+        let alert = NSAlert()
+        alert.messageText = "Cost Breakdown"
+        alert.informativeText = """
+        Transcription: $\(String(format: "%.3f", costBreakdown.transcription))
+        Notes Generation: $\(String(format: "%.3f", costBreakdown.notes))
+        Total: $\(String(format: "%.3f", costBreakdown.total))
+        
+        \(viewModel.meeting.costInfo != nil ? "Actual usage" : "Estimated cost")
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
     
     private var myNotesView: some View {
         VStack(alignment: .leading, spacing: 8) {

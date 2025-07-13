@@ -147,10 +147,33 @@ struct MeetingRowView: View {
             
             Spacer()
             
-            // Date on the right
-            Text(meeting.date, style: .time)
-                .font(.caption)
-                .foregroundColor(.secondary)
+            // Cost and date on the right
+            VStack(alignment: .trailing, spacing: 2) {
+                // Cost display
+                let totalCost = meeting.estimatedCost
+                if totalCost > 0 {
+                    Text(String(format: "$%.3f", totalCost))
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(4)
+                } else {
+                    Text("$0.000")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(4)
+                }
+                
+                // Date
+                Text(meeting.date, style: .time)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         .padding(.vertical, 4)
     }
