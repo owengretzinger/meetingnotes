@@ -104,12 +104,12 @@ struct SettingsView: View {
                         .foregroundColor(.primary)
                     
                     // Link to GitHub repository
-                    Link("https://github.com/owengretzinger/meetingnotes",
+                    Link("GitHub",
                          destination: URL(string: "https://github.com/owengretzinger/meetingnotes")!)
                         .foregroundColor(.blue)
 
                     // Link to landing page
-                    Link("https://meetingnotes.owengretzinger.com",
+                    Link("Landing Page",
                          destination: URL(string: "https://meetingnotes.owengretzinger.com")!)
                         .foregroundColor(.blue)
                     
@@ -122,6 +122,18 @@ struct SettingsView: View {
                     Link("Terms of Service",
                          destination: URL(string: "https://meetingnotes.owengretzinger.com/terms")!)
                         .foregroundColor(.blue)
+                }
+                
+                // Development Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Development")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    Button("Reset Onboarding") {
+                        viewModel.resetOnboarding()
+                    }
+                    .foregroundColor(.blue)
                 }
                 
                 // Save button

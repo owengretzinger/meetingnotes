@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MeetingListView: View {
     @StateObject private var viewModel = MeetingListViewModel()
+    @ObservedObject var settingsViewModel: SettingsViewModel
     @State private var navigationPath = NavigationPath()
     
     var body: some View {
@@ -74,7 +75,7 @@ struct MeetingListView: View {
             }
             .navigationDestination(for: String.self) { path in
                 if path == "settings" {
-                    SettingsView(viewModel: SettingsViewModel(), navigationPath: $navigationPath)
+                    SettingsView(viewModel: settingsViewModel, navigationPath: $navigationPath)
                 } else if path == "templates" {
                     TemplateListView()
                 }
@@ -160,5 +161,5 @@ struct MeetingRowView: View {
 }
 
 #Preview {
-    MeetingListView()
+    MeetingListView(settingsViewModel: SettingsViewModel())
 } 
