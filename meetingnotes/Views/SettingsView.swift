@@ -97,7 +97,7 @@ struct SettingsView: View {
 
                 }
                 
-                // GitHub Link Section
+                // About Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("About")
                         .font(.headline)
@@ -111,6 +111,16 @@ struct SettingsView: View {
                     // Link to landing page
                     Link("https://meetingnotes.owengretzinger.com",
                          destination: URL(string: "https://meetingnotes.owengretzinger.com")!)
+                        .foregroundColor(.blue)
+                    
+                    // Link to Privacy Policy
+                    Link("Privacy Policy",
+                         destination: URL(string: "https://meetingnotes.owengretzinger.com/privacy")!)
+                        .foregroundColor(.blue)
+                    
+                    // Link to Terms of Service
+                    Link("Terms of Service",
+                         destination: URL(string: "https://meetingnotes.owengretzinger.com/terms")!)
                         .foregroundColor(.blue)
                 }
                 

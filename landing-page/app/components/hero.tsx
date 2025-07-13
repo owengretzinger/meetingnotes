@@ -19,7 +19,7 @@ export default function Hero() {
         </h1>
 
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-[52rem] mx-auto leading-relaxed">
-          Just you and your OpenAI API key. Go crazy.
+          Just you and your OpenAI API key.<br />Go crazy.
         </p>
 
         <div className="flex flex-wrap justify-center gap-6 mb-12">
