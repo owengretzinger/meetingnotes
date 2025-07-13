@@ -20,10 +20,11 @@ Implemented:
 - Auto updates
 - Text formatting
 - Different note templates
+- Integrate with Posthog for anonymous analytics (installs, opens, meetings created)
 
 Todo:
 
-- Integrate with Posthog for anonymous analytics
+- Onboarding screen to enable settings and set API key
 
 Later:
 
