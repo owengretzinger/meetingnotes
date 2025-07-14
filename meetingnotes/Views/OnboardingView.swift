@@ -80,7 +80,7 @@ struct OnboardingView: View {
                                     .font(.title2)
                                     .fontWeight(.semibold)
                                 
-                                Text("Please review and accept the terms of service and privacy policy.")
+                                Text("Of note, I am tracking a few basic anonymous metrics (installs, opens, meetings created) using PostHog, because I'm trying to gauge interest in the app and whether it's worth it to pay for an Apple Developer License & domain name. Everything is completely anonymous (feel free to check the source code). If you have any concerns, please reach out.")
                                     .font(.body)
                                     .foregroundColor(.secondary)
                             }
