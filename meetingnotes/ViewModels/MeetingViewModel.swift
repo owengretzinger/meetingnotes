@@ -173,8 +173,6 @@ class MeetingViewModel: ObservableObject {
     }
     
     func generateNotes() async {
-        // Track enhanced generation event
-        PostHogSDK.shared.capture("enhanced_generation_triggered")
         isGeneratingNotes = true
         errorMessage = nil
         
@@ -223,8 +221,6 @@ class MeetingViewModel: ObservableObject {
     }
     
     func copyCurrentTabContent() {
-        // Track copy button pressed with current tab
-        PostHogSDK.shared.capture("copy_button_pressed", properties: ["tab": selectedTab.rawValue])
         NSPasteboard.general.clearContents()
         
         let content: String
