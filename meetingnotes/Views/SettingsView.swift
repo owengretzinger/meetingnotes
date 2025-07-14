@@ -155,8 +155,8 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .frame(minWidth: 600, minHeight: 600)
         .onAppear {
-            viewModel.loadSettings()
             viewModel.loadTemplates()
+            viewModel.loadAPIKey()
         }
         .onDisappear {
             DispatchQueue.main.async {
