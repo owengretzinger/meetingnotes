@@ -12,6 +12,19 @@ class KeychainHelper {
     
     private init() {}
     
+    /// Gets the API key directly from keychain
+    /// - Returns: The API key string if found, nil otherwise
+    func getAPIKey() -> String? {
+        return get(forKey: "openAIKey")
+    }
+    
+    /// Saves the API key to keychain
+    /// - Parameter apiKey: The API key to save
+    /// - Returns: True if the save was successful, false otherwise
+    func saveAPIKey(_ apiKey: String) -> Bool {
+        return save(apiKey, forKey: "openAIKey")
+    }
+    
     /// Saves a string value to the keychain
     /// - Parameters:
     ///   - value: The string value to save

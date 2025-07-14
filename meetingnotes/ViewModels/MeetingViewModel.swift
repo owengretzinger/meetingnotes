@@ -180,8 +180,8 @@ class MeetingViewModel: ObservableObject {
         meeting.generatedNotes = ""
         
         // Load settings for generation
-        let userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
-        let systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt()
+        let userBlurb = UserDefaultsManager.shared.userBlurb
+        let systemPrompt = UserDefaultsManager.shared.systemPrompt
         
         // Use streaming generation
         let stream = NotesGenerator.shared.generateNotesStream(

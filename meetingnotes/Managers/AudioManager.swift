@@ -294,7 +294,7 @@ class AudioManager: NSObject, ObservableObject {
     }
     
     private func connectToOpenAIRealtime(source: AudioSource) {
-        guard let key = KeychainHelper.shared.get(forKey: "openAIKey"), !key.isEmpty else {
+        guard let key = KeychainHelper.shared.getAPIKey(), !key.isEmpty else {
             print("❌ No OpenAI key found")
             return
         }

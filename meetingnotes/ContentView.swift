@@ -19,14 +19,6 @@ struct ContentView: View {
                 MeetingListView(settingsViewModel: settingsViewModel)
             }
         }
-        .onAppear {
-            // Force load settings to check onboarding status
-            settingsViewModel.loadSettings()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OnboardingReset"))) { _ in
-            // Reload settings when onboarding is reset
-            settingsViewModel.loadSettings()
-        }
     }
 }
 

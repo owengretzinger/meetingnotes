@@ -25,7 +25,7 @@ class NotesGenerator {
         return AsyncStream<String>(String.self) { continuation in
             Task {
                 do {
-                    guard let apiKey = KeychainHelper.shared.get(forKey: "openAIKey"), !apiKey.isEmpty else {
+                    guard let apiKey = KeychainHelper.shared.getAPIKey(), !apiKey.isEmpty else {
                         continuation.finish()
                         return
                     }
@@ -91,7 +91,7 @@ class NotesGenerator {
     /// Validates if OpenAI API key is configured
     /// - Returns: True if API key exists, false otherwise
     func isConfigured() -> Bool {
-        guard let key = KeychainHelper.shared.get(forKey: "openAIKey"),
+        guard let key = KeychainHelper.shared.getAPIKey(),
               !key.isEmpty else {
             return false
         }

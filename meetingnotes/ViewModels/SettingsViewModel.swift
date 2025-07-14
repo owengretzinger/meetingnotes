@@ -8,23 +8,13 @@ class SettingsViewModel: ObservableObject {
     @Published var templates: [NoteTemplate] = []
     
     init() {
-        loadSettings()
         loadTemplates()
     }
     
-    func loadSettings() {
-        settings.openAIKey = KeychainHelper.shared.get(forKey: "openAIKey") ?? ""
-        settings.userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
-        settings.systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt()
-        
-        // Load onboarding status
-        settings.hasCompletedOnboarding = KeychainHelper.shared.get(forKey: "hasCompletedOnboarding") == "true"
-        settings.hasAcceptedTerms = KeychainHelper.shared.get(forKey: "hasAcceptedTerms") == "true"
-        
-        // Load selected template ID
-        if let templateIdString = KeychainHelper.shared.get(forKey: "selectedTemplateId"),
-           let templateId = UUID(uuidString: templateIdString) {
-            settings.selectedTemplateId = templateId
+    /// Loads the API key from keychain (only called when actually needed)
+    func loadAPIKey() {
+        if settings.openAIKey.isEmpty {
+            settings.openAIKey = KeychainHelper.shared.getAPIKey() ?? ""
         }
     }
     
@@ -62,22 +52,12 @@ class SettingsViewModel: ObservableObject {
             return
         }
 
-        let openAISaved = KeychainHelper.shared.save(settings.openAIKey, forKey: "openAIKey")
-        let blurbSaved = KeychainHelper.shared.save(settings.userBlurb, forKey: "userBlurb")
-        let promptSaved = KeychainHelper.shared.save(settings.systemPrompt, forKey: "systemPrompt")
-        
-        // Save onboarding status
-        let onboardingSaved = KeychainHelper.shared.save(settings.hasCompletedOnboarding ? "true" : "false", forKey: "hasCompletedOnboarding")
-        let termsSaved = KeychainHelper.shared.save(settings.hasAcceptedTerms ? "true" : "false", forKey: "hasAcceptedTerms")
-
-        // Save selected template ID
-        var templateIdSaved = true
-        if let templateId = settings.selectedTemplateId {
-            templateIdSaved = KeychainHelper.shared.save(templateId.uuidString, forKey: "selectedTemplateId")
-        }
+        // Only save API key to keychain - other values are automatically saved to UserDefaults
+        // via computed properties when they're modified
+        let openAISaved = KeychainHelper.shared.saveAPIKey(settings.openAIKey)
 
         if showMessage {
-            if openAISaved && blurbSaved && promptSaved && templateIdSaved && onboardingSaved && termsSaved {
+            if openAISaved {
                 saveMessage = "Settings saved successfully!"
             } else {
                 saveMessage = "Error saving settings"
