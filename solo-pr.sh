@@ -35,7 +35,7 @@ git commit -m "$COMMIT_MSG"
 git push -u origin "$BRANCH_NAME"
 
 # Step 4: Create PR
-gh pr create --title "$COMMIT_MSG" --base main --head "$BRANCH_NAME"
+gh pr create --title "$COMMIT_MSG" --body "" --base main --head "$BRANCH_NAME"
 
 # Step 5: Merge PR
 gh pr merge "$BRANCH_NAME" --squash --delete-branch

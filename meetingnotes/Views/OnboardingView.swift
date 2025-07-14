@@ -66,7 +66,7 @@ struct OnboardingView: View {
                             HStack {
                                 Image(systemName: "info.circle")
                                     .foregroundColor(.blue)
-                                Text("Stored locally and encrypted.")
+                                Text("Stored locally and encrypted in Keychain.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -80,7 +80,7 @@ struct OnboardingView: View {
                                     .font(.title2)
                                     .fontWeight(.semibold)
                                 
-                                Text("Of note, I am tracking a few basic anonymous metrics (installs, opens, meetings created) using PostHog, because I'm trying to gauge interest in the app and whether it's worth it to pay for an Apple Developer License & domain name. Everything is completely anonymous (feel free to check the source code). If you have any concerns, please reach out.")
+                                Text("Of note, I am tracking a few basic anonymous metrics (installs, opens, meetings created) using PostHog, because I'm trying to gauge interest in the app. Everything is completely anonymous (feel free to check the source code). If you have any concerns, please reach out and we can find a solution.")
                                     .font(.body)
                                     .foregroundColor(.secondary)
                             }
