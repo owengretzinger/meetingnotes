@@ -173,6 +173,19 @@ create-dmg \
 
 echo "✅ DMG created: $RELEASES_DIR/$DMG_NAME"
 
+# 🔖 -------------------------------------------------
+# NEW: Create a ZIP archive for Sparkle auto-updates
+# --------------------------------------------------
+ZIP_NAME="${APP_NAME}-${VERSION}.zip"
+
+echo "📦 Creating ZIP archive for Sparkle auto-updates..."
+# Keep parent so the archive extracts directly to the app bundle
+# ditto preserves resource forks and extended attributes that Gatekeeper expects
+
+ditto -c -k --keepParent "$APP_PATH" "$RELEASES_DIR/$ZIP_NAME"
+
+echo "✅ ZIP created: $RELEASES_DIR/$ZIP_NAME"
+
 # 📡 Notarization (required for all production builds)
 echo "📡 Starting notarization process..."
 
@@ -198,24 +211,25 @@ else
 fi
 
 # Generate appcast with signatures - only process current version to avoid URL corruption
-echo "📡 Generating appcast with EdDSA signatures..."
+# -----------------------------------------------------------------------------
+# We only want the .zip in our appcast. Move DMGs out temporarily so they are
+# not picked up by generate_appcast.
 
-# Temporarily move old DMGs to avoid URL corruption
-echo "📦 Temporarily moving old DMGs to preserve their URLs..."
-mkdir -p "$RELEASES_DIR/temp_old"
-find "$RELEASES_DIR" -name "*.dmg" ! -name "$DMG_NAME" -exec mv {} "$RELEASES_DIR/temp_old/" \;
+echo "📡 Generating appcast with EdDSA signatures (ZIP only)..."
 
-# Generate appcast (will only see current DMG + existing appcast.xml)
+echo "📦 Temporarily moving DMGs so generate_appcast only sees ZIP archives..."
+mkdir -p "$RELEASES_DIR/temp_dmg"
+find "$RELEASES_DIR" -name "*.dmg" -exec mv {} "$RELEASES_DIR/temp_dmg/" \;
+
 /opt/homebrew/Caskroom/sparkle/2.7.1/bin/generate_appcast "$RELEASES_DIR" \
     --download-url-prefix "https://github.com/owengretzinger/meetingnotes/releases/download/v${VERSION}/" \
     -o "appcast.xml"
 
-# Move old DMGs back
-echo "📦 Restoring old DMGs..."
-if [ -d "$RELEASES_DIR/temp_old" ] && [ "$(ls -A "$RELEASES_DIR/temp_old")" ]; then
-    mv "$RELEASES_DIR/temp_old"/* "$RELEASES_DIR/"
+echo "📦 Restoring DMGs..."
+if [ -d "$RELEASES_DIR/temp_dmg" ] && [ "$(ls -A "$RELEASES_DIR/temp_dmg")" ]; then
+    mv "$RELEASES_DIR/temp_dmg"/* "$RELEASES_DIR/"
 fi
-rmdir "$RELEASES_DIR/temp_old"
+rmdir "$RELEASES_DIR/temp_dmg"
 
 echo "📝 Note: Make sure to upload the DMG to GitHub releases with the correct tag (v${VERSION})"
 
@@ -225,10 +239,11 @@ echo "✅ Appcast generated: appcast.xml"
 echo ""
 echo "📊 Release Summary:"
 echo "   Version: $VERSION"
+echo "   ZIP: $ZIP_NAME ($(du -h "$RELEASES_DIR/$ZIP_NAME" | cut -f1))"
 echo "   DMG: $DMG_NAME ($(du -h "$RELEASES_DIR/$DMG_NAME" | cut -f1))"
-echo "   Location: $RELEASES_DIR/$DMG_NAME"
+echo "   Location: $RELEASES_DIR"
 echo "   Code Signing: ✅ Production (Owen's Developer ID)"
-echo "   Notarization: ✅ Complete"
+echo "   Notarization (DMG): ✅ Complete"
 echo ""
 echo "🎉 Production release ready! Next steps:"
 echo "   1. Test the DMG on another Mac"
