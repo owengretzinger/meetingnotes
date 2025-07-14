@@ -184,15 +184,16 @@ class LocalStorageManager {
             print("❌ Failed to read templates directory: \(error)")
         }
         
-        // If no templates exist (user may have deleted the Templates folder),
-        // automatically regenerate the built-in default templates. We keep
-        // writing the flag so previous versions that still rely on it remain
-        // functional, but we no longer gate the regeneration behind it.
-        if templates.isEmpty {
-            let defaultTemplates = NoteTemplate.defaultTemplates()
-            for template in defaultTemplates {
-                _ = saveTemplate(template)
-                templates.append(template)
+        // Always ensure all default templates are available
+        let defaultTemplates = NoteTemplate.defaultTemplates()
+        let existingTitles = Set(templates.map { $0.title })
+        
+        // Add any missing default templates
+        for defaultTemplate in defaultTemplates {
+            if !existingTitles.contains(defaultTemplate.title) {
+                _ = saveTemplate(defaultTemplate)
+                templates.append(defaultTemplate)
+                print("✅ Added missing default template: \(defaultTemplate.title)")
             }
         }
         
