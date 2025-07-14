@@ -151,9 +151,9 @@ struct OnboardingView: View {
         }
         .onAppear {
             checkPermissions()
-            // Load existing API key if available
             settingsViewModel.loadAPIKey()
             apiKey = settingsViewModel.settings.openAIKey
+            hasAcceptedTerms = settingsViewModel.settings.hasAcceptedTerms
         }
     }
     

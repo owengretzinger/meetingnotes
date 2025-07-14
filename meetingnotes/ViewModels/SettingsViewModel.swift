@@ -84,7 +84,6 @@ class SettingsViewModel: ObservableObject {
     
     func resetOnboarding() {
         settings.hasCompletedOnboarding = false
-        settings.hasAcceptedTerms = false
         saveSettings(showMessage: false)
         
         // Force app to restart or recreate views by posting a notification
