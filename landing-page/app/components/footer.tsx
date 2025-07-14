@@ -1,4 +1,4 @@
-import { Github, Twitter, Mail, Heart } from "lucide-react"
+import { Github, Twitter, Mail, Heart } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -14,7 +14,9 @@ export default function Footer() {
               />
               <span className="text-xl font-bold">Meetingnotes</span>
             </div>
-            <p className="text-gray-400 mb-4">Free Open-Source AI Notetaker for macOS</p>
+            <p className="text-gray-400 mb-4">
+              Free Open-Source AI Notetaker for macOS
+            </p>
             <div className="flex space-x-4">
               <a
                 href="https://github.com/owengretzinger/meetingnotes"
@@ -22,10 +24,16 @@ export default function Footer() {
               >
                 <Github className="w-5 h-5" />
               </a>
-              <a href="https://x.com/owengretzinger" className="text-gray-400 hover:text-white transition-colors">
+              <a
+                href="https://x.com/owengretzinger"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="mailto:owengretzinger@gmail.com" className="text-gray-400 hover:text-white transition-colors">
+              <a
+                href="mailto:owengretzinger@gmail.com"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
                 <Mail className="w-5 h-5" />
               </a>
             </div>
@@ -35,22 +43,34 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="#features" className="hover:text-white transition-colors">
+                <a
+                  href="#features"
+                  className="hover:text-white transition-colors"
+                >
                   Features
                 </a>
               </li>
               <li>
-                <a href="#how-it-works" className="hover:text-white transition-colors">
+                <a
+                  href="#how-it-works"
+                  className="hover:text-white transition-colors"
+                >
                   How it Works
                 </a>
               </li>
               <li>
-                <a href="/download" className="hover:text-white transition-colors">
+                <a
+                  href="/download"
+                  className="hover:text-white transition-colors"
+                >
                   Download
                 </a>
               </li>
               <li>
-                <a href="/changelog" className="hover:text-white transition-colors">
+                <a
+                  href="/changelog"
+                  className="hover:text-white transition-colors"
+                >
                   Changelog
                 </a>
               </li>
@@ -61,7 +81,10 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Community</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="https://github.com/owengretzinger/meetingnotes" className="hover:text-white transition-colors">
+                <a
+                  href="https://github.com/owengretzinger/meetingnotes"
+                  className="hover:text-white transition-colors"
+                >
                   GitHub Repo
                 </a>
               </li>
@@ -96,7 +119,10 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Legal</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="/privacy" className="hover:text-white transition-colors">
+                <a
+                  href="/privacy"
+                  className="hover:text-white transition-colors"
+                >
                   Privacy Policy
                 </a>
               </li>
@@ -114,7 +140,10 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="/contact" className="hover:text-white transition-colors">
+                <a
+                  href="mailto:owengretzinger@gmail.com"
+                  className="hover:text-white transition-colors"
+                >
                   Contact
                 </a>
               </li>
@@ -122,18 +151,16 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm mb-4 md:mb-0">
-            Copyright © Owen Gretzinger {new Date().getFullYear()}. Licensed under LGPL-3.0 License. All rights
-            reserved.
+        <div className="border-t border-gray-800 pt-8 flex flex-col items-center space-y-4 md:flex-row md:justify-between md:space-y-0">
+          <p className="text-gray-400 text-sm mb-0 text-center">
+            Copyright © Owen Gretzinger {new Date().getFullYear()}. Licensed
+            under LGPL-3.0 License. All rights reserved.
           </p>
-          <div className="flex items-center space-x-2 text-gray-400 text-sm">
-            <span>Created by Owen Gretzinger with</span>
-            <Heart className="w-4 h-4 text-red-500" />
-            <span>for the community</span>
-          </div>
+          <p className="text-gray-400 text-sm text-center">
+            Created by Owen Gretzinger with ❤️ for the community
+          </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

@@ -97,21 +97,43 @@ struct SettingsView: View {
 
                 }
                 
-                // GitHub Link Section
+                // About Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("About")
                         .font(.headline)
                         .foregroundColor(.primary)
                     
                     // Link to GitHub repository
-                    Link("https://github.com/owengretzinger/meetingnotes",
+                    Link("GitHub",
                          destination: URL(string: "https://github.com/owengretzinger/meetingnotes")!)
                         .foregroundColor(.blue)
 
                     // Link to landing page
-                    Link("https://meetingnotes.owengretzinger.com",
+                    Link("Landing Page",
                          destination: URL(string: "https://meetingnotes.owengretzinger.com")!)
                         .foregroundColor(.blue)
+                    
+                    // Link to Privacy Policy
+                    Link("Privacy Policy",
+                         destination: URL(string: "https://meetingnotes.owengretzinger.com/privacy")!)
+                        .foregroundColor(.blue)
+                    
+                    // Link to Terms of Service
+                    Link("Terms of Service",
+                         destination: URL(string: "https://meetingnotes.owengretzinger.com/terms")!)
+                        .foregroundColor(.blue)
+                }
+                
+                // Development Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Development")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    Button("Reset Onboarding") {
+                        viewModel.resetOnboarding()
+                    }
+                    .foregroundColor(.blue)
                 }
                 
                 // Save button

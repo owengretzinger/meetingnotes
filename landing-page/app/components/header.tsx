@@ -40,14 +40,14 @@ export default function Header() {
             asChild
           >
             <a href="https://github.com/owengretzinger/meetingnotes">
-              <Github className="w-4 h-4 mr-2" />
-              Star
+              <Github className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Star</span>
             </a>
           </Button>
           <Button size="sm" className="bg-blue-600 hover:bg-blue-700" asChild>
             <a href="/download">
-              <Download className="w-4 h-4 mr-2" />
-              Download
+              <Download className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Download</span>
             </a>
           </Button>
         </div>

@@ -7,7 +7,7 @@ export default function Hero() {
     <section className="pb-6 pt-12 px-4 bg-gradient-to-b from-black to-gray-900">
       <div className="container mx-auto text-center">
         <Badge variant="secondary" className="mb-8 bg-blue-600/20 text-blue-400 border-blue-600/30">
-          ✨ Open-Source Alternative to Granola – Completely Free!
+          ✨ Free Open-Source Alternative to Granola!
         </Badge>
 
         <h1 className="text-5xl md:text-7xl font-bold mb-6 pb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
@@ -19,7 +19,7 @@ export default function Hero() {
         </h1>
 
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-[52rem] mx-auto leading-relaxed">
-          Just you and your OpenAI API key. Go crazy.
+          Just you and your OpenAI API key.<br />Go crazy.
         </p>
 
         <div className="flex flex-wrap justify-center gap-6 mb-12">

@@ -17,6 +17,10 @@ class SettingsViewModel: ObservableObject {
         settings.userBlurb = KeychainHelper.shared.get(forKey: "userBlurb") ?? ""
         settings.systemPrompt = KeychainHelper.shared.get(forKey: "systemPrompt") ?? Settings.defaultSystemPrompt()
         
+        // Load onboarding status
+        settings.hasCompletedOnboarding = KeychainHelper.shared.get(forKey: "hasCompletedOnboarding") == "true"
+        settings.hasAcceptedTerms = KeychainHelper.shared.get(forKey: "hasAcceptedTerms") == "true"
+        
         // Load selected template ID
         if let templateIdString = KeychainHelper.shared.get(forKey: "selectedTemplateId"),
            let templateId = UUID(uuidString: templateIdString) {
@@ -61,6 +65,10 @@ class SettingsViewModel: ObservableObject {
         let openAISaved = KeychainHelper.shared.save(settings.openAIKey, forKey: "openAIKey")
         let blurbSaved = KeychainHelper.shared.save(settings.userBlurb, forKey: "userBlurb")
         let promptSaved = KeychainHelper.shared.save(settings.systemPrompt, forKey: "systemPrompt")
+        
+        // Save onboarding status
+        let onboardingSaved = KeychainHelper.shared.save(settings.hasCompletedOnboarding ? "true" : "false", forKey: "hasCompletedOnboarding")
+        let termsSaved = KeychainHelper.shared.save(settings.hasAcceptedTerms ? "true" : "false", forKey: "hasAcceptedTerms")
 
         // Save selected template ID
         var templateIdSaved = true
@@ -69,7 +77,7 @@ class SettingsViewModel: ObservableObject {
         }
 
         if showMessage {
-            if openAISaved && blurbSaved && promptSaved && templateIdSaved {
+            if openAISaved && blurbSaved && promptSaved && templateIdSaved && onboardingSaved && termsSaved {
                 saveMessage = "Settings saved successfully!"
             } else {
                 saveMessage = "Error saving settings"
@@ -84,7 +92,23 @@ class SettingsViewModel: ObservableObject {
         }
     }
     
+    func completeOnboarding() {
+        settings.hasCompletedOnboarding = true
+        settings.hasAcceptedTerms = true
+        saveSettings(showMessage: false)
+    }
+    
     func resetToDefaults() {
         settings.systemPrompt = Settings.defaultSystemPrompt()
+    }
+    
+    func resetOnboarding() {
+        settings.hasCompletedOnboarding = false
+        settings.hasAcceptedTerms = false
+        saveSettings(showMessage: false)
+        
+        // Force app to restart or recreate views by posting a notification
+        // This will cause ContentView to re-evaluate and show onboarding
+        NotificationCenter.default.post(name: Notification.Name("OnboardingReset"), object: nil)
     }
 } 
