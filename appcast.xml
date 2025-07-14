@@ -3,6 +3,14 @@
     <channel>
         <title>Meetingnotes</title>
         <item>
+            <title>1.0.1</title>
+            <pubDate>Mon, 14 Jul 2025 18:29:29 -0400</pubDate>
+            <sparkle:version>6</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.1/Meetingnotes-1.0.1.dmg" length="9243996" type="application/octet-stream" sparkle:edSignature="DdOajgRdCWz+am3/caB7iy2KMfR9zFVxRkoZGCM4m+wQCRECTo2b46NLZYzzZNhaetYuQKht2dFAdflcWDDVDg=="/>
+        </item>
+        <item>
             <title>1.0.0</title>
             <pubDate>Mon, 14 Jul 2025 16:22:59 -0400</pubDate>
             <sparkle:version>5</sparkle:version>
