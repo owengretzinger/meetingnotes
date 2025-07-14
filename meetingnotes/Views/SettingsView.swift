@@ -19,7 +19,7 @@ struct SettingsView: View {
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text("Stored locally and encrypted.")
+                    Text("Stored locally and encrypted in Keychain.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -130,10 +130,16 @@ struct SettingsView: View {
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    Button("Reset Onboarding") {
+                    Button {
                         viewModel.resetOnboarding()
+                    } label: {
+                        Text("Reset Onboarding")
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.secondary.opacity(0.2))
+                            .cornerRadius(8)
                     }
-                    .foregroundColor(.blue)
+                    .buttonStyle(.plain)
                 }
                 
                 // Save button
