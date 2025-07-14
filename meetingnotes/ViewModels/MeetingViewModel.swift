@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import PostHog
 
 // Add notification name for meeting saved events
 extension Notification.Name {
