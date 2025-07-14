@@ -136,6 +136,22 @@ struct NoteTemplate: Codable, Identifiable, Hashable {
                     TemplateSection(title: "Action Items and Accountability for the Week Ahead", description: "Record the action items assigned for the upcoming week, including who is responsible for each task and any deadlines or accountability measures that were agreed upon.")
                 ],
                 isDefault: true
+            ),
+            
+            // Coffee Chat / Intro
+            NoteTemplate(
+                id: UUID(),
+                title: "Coffee Chat / Intro",
+                context: "I had a casual meeting or introductory conversation with someone new. This could be a coffee chat, networking meeting, or informal introduction. The goal is to capture key information about the person and our conversation for future reference and potential collaboration.",
+                sections: [
+                    TemplateSection(title: "About them", description: "Basic background information about the person - their role, company, experience, and anything notable about their professional journey."),
+                    TemplateSection(title: "Common ground", description: "Shared interests, connections, experiences, or topics we discussed that created a connection. This helps remember what we bonded over."),
+                    TemplateSection(title: "Their current focus", description: "What they're currently working on, excited about, or focused on in their professional or personal life."),
+                    TemplateSection(title: "Interesting insights", description: "Any interesting perspectives, stories, or insights they shared during our conversation that stood out."),
+                    TemplateSection(title: "Potential opportunities", description: "Ways we might be able to help each other, collaborate, or connect in the future. Include any specific ideas or possibilities that came up."),
+                    TemplateSection(title: "Follow-up", description: "Any agreed-upon next steps, promises to connect them with others, resources to share, or ways to stay in touch.")
+                ],
+                isDefault: true
             )
         ]
     }
