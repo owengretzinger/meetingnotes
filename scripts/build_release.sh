@@ -88,11 +88,13 @@ create-dmg \
 
 echo "✅ DMG created: $RELEASES_DIR/$DMG_NAME"
 
-# Generate appcast
-echo "📡 Generating appcast..."
+# Generate appcast with signatures
+echo "📡 Generating appcast with EdDSA signatures..."
 /opt/homebrew/Caskroom/sparkle/2.7.1/bin/generate_appcast "$RELEASES_DIR" \
     --download-url-prefix "https://github.com/owengretzinger/meetingnotes/releases/download/v${VERSION}/" \
     -o "appcast.xml"
+
+echo "📝 Note: Make sure to upload the DMG to GitHub releases with the correct tag (v${VERSION})"
 
 echo "✅ Appcast generated: appcast.xml"
 

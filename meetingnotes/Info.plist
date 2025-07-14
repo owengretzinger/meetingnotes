@@ -8,5 +8,7 @@
 	<string>Meetingnotes needs screen recording permission to capture system audio for transcription.</string>
 	<key>SUFeedURL</key>
 	<string>https://raw.githubusercontent.com/owengretzinger/meetingnotes/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>BVXHOV8ZxPxKZ1swhFndymzew9nyd3si7849JA9cqsg=</string>
 </dict>
 </plist>

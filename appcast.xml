@@ -8,7 +8,7 @@
             <sparkle:version>2</sparkle:version>
             <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.1.0/Meetingnotes-1.1.0.dmg" length="9195999" type="application/octet-stream"/>
+            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.1.0/Meetingnotes-1.1.0.dmg" length="9195999" type="application/octet-stream" sparkle:edSignature="F0fvb7XOIPKjPpuyb10Nfjld9ZDM2YSey3MLwQytNuiINJTb986JJ/XL7FF/v8YBPQqZEPNydepP/X3qlgp4DA=="/>
         </item>
         <item>
             <title>1.0.0</title>
@@ -16,7 +16,7 @@
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.0/Meetingnotes-1.0.0.dmg" length="8183935" type="application/octet-stream"/>
+            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.0/Meetingnotes-1.0.0.dmg" length="8183935" type="application/octet-stream" sparkle:edSignature="1uVm5NDPgxn3mmkiifsWOhpukeHZsfQdKzGxSet8cjsmDNlTIZwqpnQXp9OnrgRVhbyGBmua/yySdM9c0U9VCw=="/>
         </item>
     </channel>
 </rss>
