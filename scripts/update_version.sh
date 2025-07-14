@@ -106,5 +106,5 @@ esac
 echo ""
 echo "🎯 Next steps:"
 echo "   1. Test the app to make sure everything works"
-echo "   2. Run ./build_release.sh to create a release"
+echo "   2. Run ./scripts/build_release.sh to create a release"
 echo "   3. The new version will be: $(grep -m1 "MARKETING_VERSION" "$PROJECT_FILE" | sed 's/.*= \(.*\);/\1/')" 
