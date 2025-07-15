@@ -13,11 +13,7 @@
 
 <!-- REMOVE THIS IF YOU DON'T HAVE A DEMO -->
 <!-- TIP: You can alternatively directly upload a video up to 100MB by dropping it in while editing the README on GitHub. This displays a video player directly on GitHub instead of making it so that you have to click an image/link -->
-<div align="center">
-  <a href="https://meetingnotes.owengretzinger.com">
-    <img src="https://github.com/user-attachments/assets/f6e518a3-8fa2-46c3-ad04-597538c38425" alt="Landing Page">
-  </a>
-</div>
+https://github.com/user-attachments/assets/cadd4504-e9d9-4ccd-874d-41d8a84f4c9d
 
 <!--
 ## Table of Contents
