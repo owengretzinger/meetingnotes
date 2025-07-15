@@ -61,6 +61,10 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
 
                     TextEditor(text: $viewModel.settings.userBlurb)
+                        .scrollContentBackground(.hidden)
+                        .padding(8)
+                        .background(Color.gray.opacity(0.05))
+                        .cornerRadius(8)
                         .frame(minHeight: 100)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
@@ -89,6 +93,10 @@ struct SettingsView: View {
                     }
                     
                     TextEditor(text: $viewModel.settings.systemPrompt)
+                        .scrollContentBackground(.hidden)
+                        .padding(8)
+                        .background(Color.gray.opacity(0.05))
+                        .cornerRadius(8)
                         .frame(minHeight: 200)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
