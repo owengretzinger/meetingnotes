@@ -175,6 +175,7 @@ struct MeetingDetailView: View {
             
             TextEditor(text: $viewModel.meeting.userNotes)
                 .font(.body)
+                .padding(8)
                 .scrollContentBackground(.hidden)
                 .background(Color.gray.opacity(0.05))
                 .cornerRadius(8)
@@ -264,6 +265,7 @@ struct MeetingDetailView: View {
                     set: { viewModel.meeting.generatedNotes = $0 }
                 ))
                     .font(.body)
+                    .padding(8)
                     .scrollContentBackground(.hidden)
                     .background(Color.gray.opacity(0.05))
                     .cornerRadius(8)
