@@ -124,12 +124,11 @@ class MeetingViewModel: ObservableObject {
     
     var recordingButtonText: String {
         switch recordingState {
-        case .idle:
-            return "Transcribe"
+        case .idle, .paused:
+            // Check if there's existing transcript content
+            return meeting.transcriptChunks.isEmpty ? "Transcribe" : "Resume"
         case .recording:
             return "Stop"
-        case .paused:
-            return "Resume"
         }
     }
     
