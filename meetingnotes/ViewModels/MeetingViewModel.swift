@@ -16,9 +16,8 @@ enum MeetingViewTab: String, CaseIterable {
 }
 
 enum RecordingState {
-    case idle // Not recording, shows "Transcribe"
+    case idle // Not recording, shows "Transcribe" or "Resume" based on transcript content
     case recording // Recording, shows "Stop"
-    case paused // Paused, shows "Resume"
 }
 
 @MainActor
@@ -117,14 +116,14 @@ class MeetingViewModel: ObservableObject {
     private func updateRecordingState() {
         if isRecording {
             recordingState = .recording
-        } else if recordingState == .recording {
-            recordingState = .paused
+        } else {
+            recordingState = .idle
         }
     }
     
     var recordingButtonText: String {
         switch recordingState {
-        case .idle, .paused:
+        case .idle:
             // Check if there's existing transcript content
             return meeting.transcriptChunks.isEmpty ? "Transcribe" : "Resume"
         case .recording:
@@ -134,7 +133,7 @@ class MeetingViewModel: ObservableObject {
     
     func toggleRecording() {
         switch recordingState {
-        case .idle, .paused:
+        case .idle:
             startRecording()
         case .recording:
             stopRecording()
