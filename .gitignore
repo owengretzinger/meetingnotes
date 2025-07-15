@@ -122,3 +122,5 @@ Temporary Items
 APIKeys.swift
 .env
 .env.local
+
+releases/
