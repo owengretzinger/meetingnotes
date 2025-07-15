@@ -8,7 +8,7 @@
             <sparkle:version>6</sparkle:version>
             <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.1/Meetingnotes-1.0.1.zip" length="9452933" type="application/octet-stream" sparkle:edSignature="PtT6DZ3tLLRpi4QO2jj0Gho/MDMvKfY13ts+0n/x7q1kG0l3alclnWrB5tOfyYm1On2VdlcSbqbfq0gvbobgBw=="/>
+            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.1/Meetingnotes-1.0.1.zip" length="9453114" type="application/octet-stream" sparkle:edSignature="mZUkDI01sjMNOG/GxOaE8ZyS706PkxDxe+4v16CyYP4/gvZdLWtZN8oB8+hfwPXBGk8aQ9Y4cOGWkHjswcYkAg=="/>
         </item>
         <item>
             <title>1.0.0</title>
