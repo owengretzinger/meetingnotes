@@ -6,6 +6,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://meetingnotes.owengretzinger.com"),
   title: "Meetingnotes - Free Open-Source AI Meeting Notetaker",
   description:
     "Free, open-source macOS app for AI-powered meeting notes. Transcribe, summarize, and store everything locally with complete privacy. Created by Owen Gretzinger.",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     description:
       "Free, open-source macOS app for AI-powered meeting notes. Created by Owen Gretzinger for privacy-focused professionals.",
     type: "website",
-    url: "https://meetingnotes.dev",
+    url: "https://meetingnotes.owengretzinger.com",
     images: [
       {
         url: "/ogimage.png",
@@ -30,7 +31,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Meetingnotes - Free Open-Source AI Meeting Notetaker",
     description: "Free, open-source macOS app for AI-powered meeting notes by Owen Gretzinger.",
-    images: ["/ogimage.png"],
+    images: [
+      {
+        url: "/ogimage.png",
+        width: 1200,
+        height: 630,
+        alt: "Meetingnotes - Free Open-Source AI Meeting Notetaker",
+      },
+    ],
   },
     generator: 'v0.dev'
 }
