@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import PostHog
 
 class SettingsViewModel: ObservableObject {
     @Published var settings = Settings()
@@ -76,6 +77,7 @@ class SettingsViewModel: ObservableObject {
         settings.hasCompletedOnboarding = true
         settings.hasAcceptedTerms = true
         saveSettings(showMessage: false)
+        PostHogSDK.shared.capture("onboarding_completed")
     }
     
     func resetToDefaults() {
