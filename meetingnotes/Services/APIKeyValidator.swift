@@ -43,21 +43,13 @@ class APIKeyValidator {
                 } else {
                     return .failure(.noModelsAvailable)
                 }
-            case 401:
-                return .failure(.invalidKey)
-            case 429:
-                return .failure(.rateLimited)
-            case 402:
-                return .failure(.insufficientFunds)
-            case 403:
-                return .failure(.forbidden)
-            case 500...599:
-                return .failure(.serverError)
             default:
-                return .failure(.networkError("HTTP \(httpResponse.statusCode)"))
+                let errorMessage = ErrorHandler.shared.handleHTTPStatusCode(httpResponse.statusCode)
+                return .failure(.httpError(errorMessage))
             }
         } catch {
-            return .failure(.networkError(error.localizedDescription))
+            let errorMessage = ErrorHandler.shared.handleError(error)
+            return .failure(.networkError(errorMessage))
         }
     }
     
@@ -75,35 +67,23 @@ class APIKeyValidator {
 /// Errors that can occur during API key validation
 enum APIKeyValidationError: Error, LocalizedError {
     case emptyKey
-    case invalidKey
-    case insufficientFunds
-    case rateLimited
-    case forbidden
-    case serverError
-    case networkError(String)
     case invalidURL
     case noModelsAvailable
+    case networkError(String)
+    case httpError(String)
     
     var errorDescription: String? {
         switch self {
         case .emptyKey:
-            return "OpenAI API key is not configured. Please add your API key in Settings."
-        case .invalidKey:
-            return "Invalid OpenAI API key. Please check your API key in Settings."
-        case .insufficientFunds:
-            return "Insufficient funds in your OpenAI account. Please add credits to your account."
-        case .rateLimited:
-            return "OpenAI API rate limit exceeded. Please try again later."
-        case .forbidden:
-            return "Access forbidden. Please check your API key permissions."
-        case .serverError:
-            return "OpenAI server error. Please try again later."
-        case .networkError(let message):
-            return "Network error: \(message)"
+            return ErrorMessage.noAPIKey
         case .invalidURL:
-            return "Invalid API URL configuration."
+            return ErrorMessage.invalidURL
         case .noModelsAvailable:
-            return "No models available with your API key. Please check your account status."
+            return ErrorMessage.noModelsAvailable
+        case .networkError(let message):
+            return message
+        case .httpError(let message):
+            return message
         }
     }
 }
