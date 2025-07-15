@@ -21,9 +21,6 @@ export default function Header() {
           <a href="/#features" className="text-gray-300 hover:text-white transition-colors">
             Features
           </a>
-          <a href="/#how-it-works" className="text-gray-300 hover:text-white transition-colors">
-            How it Works
-          </a>
           <a href="/#pricing" className="text-gray-300 hover:text-white transition-colors">
             Pricing
           </a>
