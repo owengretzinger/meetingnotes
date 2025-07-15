@@ -383,13 +383,16 @@ class AudioManager: NSObject, ObservableObject {
         switch type {
         case "conversation.item.input_audio_transcription.delta":
             if let delta = json["delta"] as? String {
-                currentInterim[source]! += delta
-                
                 DispatchQueue.main.async {
-                    // Remove previous interim chunk from the same source
+                    // Safely accumulate interim text for this source
+                    self.currentInterim[source, default: ""] += delta
+
+                    // Remove previous interim chunk from the same source (if any)
                     if let lastIndex = self.transcriptChunks.lastIndex(where: { !$0.isFinal && $0.source == source }) {
                         self.transcriptChunks.remove(at: lastIndex)
                     }
+
+                    // Append updated interim chunk
                     let chunk = TranscriptChunk(
                         timestamp: Date(),
                         source: source,
@@ -402,8 +405,10 @@ class AudioManager: NSObject, ObservableObject {
         case "conversation.item.input_audio_transcription.completed":
             if let transcript = json["transcript"] as? String {
                 DispatchQueue.main.async {
-                    // Remove any interim chunks from the same source
+                    // Remove any interim chunks for this source
                     self.transcriptChunks.removeAll { !$0.isFinal && $0.source == source }
+
+                    // Append final chunk
                     let chunk = TranscriptChunk(
                         timestamp: Date(),
                         source: source,
@@ -411,8 +416,10 @@ class AudioManager: NSObject, ObservableObject {
                         isFinal: true
                     )
                     self.transcriptChunks.append(chunk)
+
+                    // Reset interim buffer for this source
+                    self.currentInterim[source] = ""
                 }
-                currentInterim[source] = ""
             }
         default:
             break
