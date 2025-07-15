@@ -7,7 +7,7 @@
   <p align="center">
     The Free, Open-Source AI Notetaker for Busy Engineers
     <br />
-     <a href="https://github.com/owengretzinger/meetingnotes/releases/latest">Download for MacOS 14+</a>
+     <a href="https://github.com/owengretzinger/meetingnotes/releases/latest/download/Meetingnotes.dmg">Download for MacOS 14+</a>
   </p>
 </div>
 
@@ -110,6 +110,12 @@ Implemented:
 - Different note templates
 - Integrate with Posthog for anonymous analytics (installs, opens, meetings created)
 - Onboarding screen to enable settings and set API key
+
+Todo:
+
+- check for funds / validity of openai api key
+- add padding to text inputs
+- add confirmation when clicking the copy button
 
 Later:
 
