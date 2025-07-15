@@ -26,7 +26,15 @@ fi
 
 BUILD_DIR="$(pwd)/build"
 RELEASES_DIR="$(pwd)/releases"
+# New: keep each release in its own sub-folder (e.g. releases/v1.0.2)
+VERSION_DIR="${RELEASES_DIR}/v${VERSION}"
+mkdir -p "$VERSION_DIR"
+
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
+ZIP_NAME="${APP_NAME}-${VERSION}.zip"
+# Absolute paths for the artifacts
+DMG_PATH="${VERSION_DIR}/${DMG_NAME}"
+ZIP_PATH="${VERSION_DIR}/${ZIP_NAME}"
 
 echo "🚀 Building ${APP_NAME} v${VERSION}..."
 
@@ -152,11 +160,9 @@ echo "✅ App built and signed successfully at $APP_PATH"
 
 # Create DMG
 echo "📀 Creating DMG..."
-mkdir -p "$RELEASES_DIR"
-
 # Remove old DMG if it exists
-if [ -f "$RELEASES_DIR/$DMG_NAME" ]; then
-    rm "$RELEASES_DIR/$DMG_NAME"
+if [ -f "$DMG_PATH" ]; then
+    rm "$DMG_PATH"
 fi
 
 # Create DMG using create-dmg
@@ -168,10 +174,10 @@ create-dmg \
     --icon "$APP_NAME.app" 200 190 \
     --hide-extension "$APP_NAME.app" \
     --app-drop-link 600 185 \
-    "$RELEASES_DIR/$DMG_NAME" \
+    "$DMG_PATH" \
     "$APP_PATH"
 
-echo "✅ DMG created: $RELEASES_DIR/$DMG_NAME"
+echo "✅ DMG created: $DMG_PATH"
 
 # 🔖 -------------------------------------------------
 # NEW: Create a ZIP archive for Sparkle auto-updates
@@ -182,16 +188,16 @@ echo "📦 Creating ZIP archive for Sparkle auto-updates..."
 # Keep parent so the archive extracts directly to the app bundle
 # ditto preserves resource forks and extended attributes that Gatekeeper expects
 
-ditto -c -k --keepParent "$APP_PATH" "$RELEASES_DIR/$ZIP_NAME"
+ditto -c -k --keepParent "$APP_PATH" "$ZIP_PATH"
 
-echo "✅ ZIP created: $RELEASES_DIR/$ZIP_NAME"
+echo "✅ ZIP created: $ZIP_PATH"
 
 # 📡 Notarization (required for all production builds)
 echo "📡 Starting notarization process..."
 
 # Submit for notarization
 echo "📤 Submitting DMG for notarization..."
-NOTARIZATION_RESPONSE=$(xcrun notarytool submit "$RELEASES_DIR/$DMG_NAME" \
+NOTARIZATION_RESPONSE=$(xcrun notarytool submit "$DMG_PATH" \
     --apple-id "$APPLE_ID" \
     --team-id "$TEAM_ID" \
     --password "$APP_PASSWORD" \
@@ -202,7 +208,7 @@ if echo "$NOTARIZATION_RESPONSE" | grep -q "status: Accepted"; then
     
     # Staple the notarization
     echo "📎 Stapling notarization ticket to DMG..."
-    xcrun stapler staple "$RELEASES_DIR/$DMG_NAME"
+    xcrun stapler staple "$DMG_PATH"
     echo "✅ DMG notarized and stapled!"
 else
     echo "❌ Notarization failed!"
@@ -217,19 +223,24 @@ fi
 
 echo "📡 Generating appcast with EdDSA signatures (ZIP only)..."
 
-echo "📦 Temporarily moving DMGs so generate_appcast only sees ZIP archives..."
-mkdir -p "$RELEASES_DIR/temp_dmg"
-find "$RELEASES_DIR" -name "*.dmg" -exec mv {} "$RELEASES_DIR/temp_dmg/" \;
+# Stage ZIPs into a temporary workspace so generate_appcast sees every version
+APPCAST_WORK="${RELEASES_DIR}/appcast_work"
+rm -rf "$APPCAST_WORK"
+mkdir -p "$APPCAST_WORK"
 
-/opt/homebrew/Caskroom/sparkle/2.7.1/bin/generate_appcast "$RELEASES_DIR" \
+echo "🔗 Staging ZIP archives for appcast generation..."
+find "$RELEASES_DIR" -type f -name "*.zip" -exec ln -sf {} "$APPCAST_WORK/" \;
+
+/opt/homebrew/Caskroom/sparkle/2.7.1/bin/generate_appcast "$APPCAST_WORK" \
     --download-url-prefix "https://github.com/owengretzinger/meetingnotes/releases/download/v${VERSION}/" \
     -o "appcast.xml"
 
-echo "📦 Restoring DMGs..."
-if [ -d "$RELEASES_DIR/temp_dmg" ] && [ "$(ls -A "$RELEASES_DIR/temp_dmg")" ]; then
-    mv "$RELEASES_DIR/temp_dmg"/* "$RELEASES_DIR/"
+echo "🚚 Moving generated delta files into version folder..."
+if compgen -G "$APPCAST_WORK/*.delta" > /dev/null; then
+    mv "$APPCAST_WORK"/*.delta "$VERSION_DIR/"
 fi
-rmdir "$RELEASES_DIR/temp_dmg"
+
+rm -rf "$APPCAST_WORK"
 
 echo "📝 Note: Make sure to upload the DMG to GitHub releases with the correct tag (v${VERSION})"
 
@@ -239,9 +250,9 @@ echo "✅ Appcast generated: appcast.xml"
 echo ""
 echo "📊 Release Summary:"
 echo "   Version: $VERSION"
-echo "   ZIP: $ZIP_NAME ($(du -h "$RELEASES_DIR/$ZIP_NAME" | cut -f1))"
-echo "   DMG: $DMG_NAME ($(du -h "$RELEASES_DIR/$DMG_NAME" | cut -f1))"
-echo "   Location: $RELEASES_DIR"
+echo "   ZIP: $ZIP_NAME ($(du -h "$ZIP_PATH" | cut -f1))"
+echo "   DMG: $DMG_NAME ($(du -h "$DMG_PATH" | cut -f1))"
+echo "   Location: $VERSION_DIR"
 echo "   Code Signing: ✅ Production (Owen's Developer ID)"
 echo "   Notarization (DMG): ✅ Complete"
 echo ""
