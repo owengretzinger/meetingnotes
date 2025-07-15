@@ -1,6 +1,9 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Check, DollarSign, Key, Shield } from "lucide-react"
+import { downloadAndNavigate } from "@/lib/utils"
 
 export default function Pricing() {
   return (
@@ -122,7 +125,7 @@ export default function Pricing() {
                 </div>
               </div>
 
-              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-lg px-8 py-4">
+              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-lg px-8 py-4" onClick={downloadAndNavigate}>
                 Download Free Now
               </Button>
 

@@ -1,5 +1,8 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Download, Github, ArrowRight } from "lucide-react"
+import { downloadAndNavigate } from "@/lib/utils"
 
 export default function FinalCTA() {
   return (
@@ -17,12 +20,10 @@ export default function FinalCTA() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4 group" asChild>
-            <a href="/download">
-              <Download className="w-5 h-5 mr-2" />
-              Download for macOS
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </a>
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4 group" onClick={downloadAndNavigate}>
+            <Download className="w-5 h-5 mr-2" />
+            Download for macOS
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Button
             variant="outline"
