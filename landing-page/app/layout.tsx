@@ -17,11 +17,20 @@ export const metadata: Metadata = {
       "Free, open-source macOS app for AI-powered meeting notes. Created by Owen Gretzinger for privacy-focused professionals.",
     type: "website",
     url: "https://meetingnotes.dev",
+    images: [
+      {
+        url: "/ogimage.png",
+        width: 1200,
+        height: 630,
+        alt: "Meetingnotes - Free Open-Source AI Meeting Notetaker",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Meetingnotes - Free Open-Source AI Meeting Notetaker",
     description: "Free, open-source macOS app for AI-powered meeting notes by Owen Gretzinger.",
+    images: ["/ogimage.png"],
   },
     generator: 'v0.dev'
 }
