@@ -10,6 +10,7 @@ import ScreenCaptureKit
 class AudioManager: NSObject, ObservableObject {
     @Published var transcriptChunks: [TranscriptChunk] = []
     @Published var isRecording = false
+    @Published var errorMessage: String?
     
     private var audioEngine = AVAudioEngine()
     private var micSocketTask: URLSessionWebSocketTask?
@@ -41,6 +42,11 @@ class AudioManager: NSObject, ObservableObject {
 
     func startRecording() {
         print("Starting recording...")
+        
+        // Clear any previous errors
+        DispatchQueue.main.async {
+            self.errorMessage = nil
+        }
         
         // First ensure everything is stopped and cleaned up
         stopRecordingInternal()
@@ -295,7 +301,11 @@ class AudioManager: NSObject, ObservableObject {
     
     private func connectToOpenAIRealtime(source: AudioSource) {
         guard let key = KeychainHelper.shared.getAPIKey(), !key.isEmpty else {
-            print("❌ No OpenAI key found")
+            let errorMsg = "OpenAI API key not found. Please configure your API key in Settings."
+            print("❌ \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
             return
         }
 
@@ -305,7 +315,20 @@ class AudioManager: NSObject, ObservableObject {
         request.addValue("realtime=v1", forHTTPHeaderField: "OpenAI-Beta")
 
         let task = session.webSocketTask(with: request)
+        
+        // Add connection monitoring
         task.resume()
+        
+        // Monitor connection state
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+            if task.state != .running {
+                let errorMsg = "Failed to connect to OpenAI transcription service. Please check your internet connection and API key."
+                print("❌ \(errorMsg)")
+                DispatchQueue.main.async {
+                    self.errorMessage = errorMsg
+                }
+            }
+        }
 
         // Send initial configuration
         let config: [String: Any] = [
@@ -328,14 +351,22 @@ class AudioManager: NSObject, ObservableObject {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: config)
             if let jsonStr = String(data: jsonData, encoding: .utf8) {
-                task.send(.string(jsonStr)) { error in
+                task.send(.string(jsonStr)) { [weak self] error in
                     if let error = error {
-                        print("❌ Config send error: \(error)")
+                        let errorMsg = "Failed to configure transcription session: \(error.localizedDescription)"
+                        print("❌ \(errorMsg)")
+                        DispatchQueue.main.async {
+                            self?.errorMessage = errorMsg
+                        }
                     }
                 }
             }
         } catch {
-            print("❌ Config JSON error: \(error)")
+            let errorMsg = "Failed to create transcription configuration: \(error.localizedDescription)"
+            print("❌ \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
         }
 
         switch source {
@@ -364,15 +395,91 @@ class AudioManager: NSObject, ObservableObject {
                 }
                 self?.receiveMessage(for: source) // continue loop
             case .failure(let error):
+                let errorMsg = self?.handleWebSocketError(error, source: source) ?? "Unknown transcription error"
                 print("❌ Receive error (\(source)): \(error)")
-                // Attempt reconnect if still recording
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    if self?.isRecording == true {
-                        self?.connectToOpenAIRealtime(source: source)
+                
+                DispatchQueue.main.async {
+                    self?.errorMessage = errorMsg
+                }
+                
+                // Only attempt reconnect for network errors, not API errors
+                if self?.shouldRetryConnection(error) == true {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        if self?.isRecording == true {
+                            self?.connectToOpenAIRealtime(source: source)
+                        }
                     }
                 }
             }
         }
+    }
+    
+    private func handleWebSocketError(_ error: Error, source: AudioSource) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet:
+                return "No internet connection. Please check your network and try again."
+            case .timedOut:
+                return "Connection timed out. Please try again."
+            case .cannotFindHost:
+                return "Cannot reach OpenAI servers. Please check your internet connection."
+            case .httpTooManyRedirects:
+                return "Too many redirects. Please try again later."
+            default:
+                return "Network error: \(urlError.localizedDescription)"
+            }
+        }
+        
+        // Check for WebSocket close codes that indicate API errors
+        if let closeCode = (error as NSError?)?.userInfo["closeCode"] as? Int {
+            switch closeCode {
+            case 1008: // Policy violation
+                return "API policy violation. Please check your API key and account status."
+            case 1011: // Server error
+                return "OpenAI server error. Please try again later."
+            case 4000: // Bad request
+                return "Invalid request to OpenAI API. Please check your configuration."
+            case 4001: // Unauthorized
+                return "Invalid API key. Please check your OpenAI API key in Settings."
+            case 4002: // Forbidden
+                return "Access forbidden. Please check your API key permissions."
+            case 4003: // Not found
+                return "API endpoint not found. Please update the app."
+            case 4004: // Method not allowed
+                return "Invalid API method. Please update the app."
+            case 4005: // Request timeout
+                return "Request timeout. Please try again."
+            case 4006: // Request too large
+                return "Request too large. Please try again."
+            case 4007: // Rate limited
+                return "OpenAI API rate limit exceeded. Please try again later."
+            case 4008: // Insufficient funds
+                return "Insufficient funds in your OpenAI account. Please add credits."
+            default:
+                return "OpenAI API error (code \(closeCode)). Please try again."
+            }
+        }
+        
+        return "Transcription error: \(error.localizedDescription)"
+    }
+    
+    private func shouldRetryConnection(_ error: Error) -> Bool {
+        // Don't retry for API errors (authentication, rate limits, etc.)
+        if let closeCode = (error as NSError?)?.userInfo["closeCode"] as? Int {
+            return closeCode < 4000 // Only retry for non-API errors
+        }
+        
+        // Retry for network errors
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut, .cannotFindHost, .networkConnectionLost:
+                return true
+            default:
+                return false
+            }
+        }
+        
+        return false
     }
 
     private func parseRealtimeEvent(_ text: String, source: AudioSource) {
