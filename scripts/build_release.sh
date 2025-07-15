@@ -10,6 +10,12 @@ APP_NAME="Meetingnotes"
 BUNDLE_ID="owen.meetingnotes"
 VERSION=$(grep -m1 "MARKETING_VERSION" Meetingnotes.xcodeproj/project.pbxproj | sed 's/.*= \(.*\);/\1/')
 
+# Source environment variables if .env file exists
+if [ -f ".env" ]; then
+    echo "📄 Loading environment variables from .env file..."
+    source .env
+fi
+
 # Production code signing configuration
 DEVELOPER_ID="${DEVELOPER_ID:-}"
 
@@ -39,7 +45,7 @@ ZIP_PATH="${VERSION_DIR}/${ZIP_NAME}"
 echo "🚀 Building ${APP_NAME} v${VERSION}..."
 
 # Check signing configuration
-echo "🔏 Using Developer ID Application: [HIDDEN]"
+echo "🔏 Using Developer ID Application: $DEVELOPER_ID"
 
 # Verify notarization credentials
 if [ -z "$DEVELOPER_ID" ] || [ -z "$APPLE_ID" ] || [ -z "$TEAM_ID" ] || [ -z "$APP_PASSWORD" ]; then
@@ -53,15 +59,15 @@ if [ -z "$DEVELOPER_ID" ] || [ -z "$APPLE_ID" ] || [ -z "$TEAM_ID" ] || [ -z "$A
     echo ""
     echo "🔧 Set them up:"
     echo "   Create a .env file with your credentials"
-    echo "   Then run: source .env && ./scripts/build_release.sh"
+    echo "   Then run: ./scripts/build_release.sh"
     echo ""
     echo "💡 Use: ./scripts/setup_codesigning.sh to get started"
     echo ""
     exit 1
 fi
 
-echo "📡 Notarization configured for Apple ID: [HIDDEN]"
-echo "🏷️  Team ID: [HIDDEN]"
+echo "📡 Notarization configured for Apple ID: $APPLE_ID"
+echo "🏷️  Team ID: $TEAM_ID"
 
 # Clean and build a *universal* binary (arm64 + x86_64)
 # -----------------------------------------------------
@@ -184,13 +190,53 @@ echo "✅ DMG created: $DMG_PATH"
 # --------------------------------------------------
 ZIP_NAME="${APP_NAME}-${VERSION}.zip"
 
-echo "📦 Creating ZIP archive for Sparkle auto-updates..."
-# Keep parent so the archive extracts directly to the app bundle
-# ditto preserves resource forks and extended attributes that Gatekeeper expects
+# Prepare a staging directory so the .zip contains only
+# `${APP_NAME}.app` at its root (without the intermediate "Release"
+# folder that Xcode places it in). Sparkle's `generate_appcast`
+# expects this structure – otherwise it cannot locate the app's
+# executable when unarchiving which leads to the "ditto: ... No such
+# file or directory / Could not unarchive ... Code=3000" error we saw.
+STAGING_DIR="${BUILD_DIR}/zip_staging"
+rm -rf "$STAGING_DIR"
+mkdir -p "$STAGING_DIR"
+cp -R "$APP_PATH" "$STAGING_DIR/"
+ZIP_INPUT_PATH="${STAGING_DIR}/${APP_NAME}.app"
 
-ditto -c -k --keepParent "$APP_PATH" "$ZIP_PATH"
+echo "📦 Creating ZIP archive for Sparkle auto-updates..."
+(
+  cd "$STAGING_DIR"
+  echo "[DEBUG] Running: ditto -c -k --sequesterRsrc --keepParent $APP_NAME.app $ZIP_PATH"
+  ditto -c -k --sequesterRsrc --keepParent "$APP_NAME.app" "$ZIP_PATH"
+)
+
+# Clean up staging folder
+rm -rf "$STAGING_DIR"
 
 echo "✅ ZIP created: $ZIP_PATH"
+
+# --- Advanced ZIP validation ---
+TMP_EXTRACT_DIR="${BUILD_DIR}/zip_extract_test"
+rm -rf "$TMP_EXTRACT_DIR"
+mkdir -p "$TMP_EXTRACT_DIR"
+echo "[DEBUG] Testing ZIP extraction with: ditto -x -k $ZIP_PATH $TMP_EXTRACT_DIR"
+if ditto -x -k "$ZIP_PATH" "$TMP_EXTRACT_DIR"; then
+  if [ -f "$TMP_EXTRACT_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME" ]; then
+    echo "✅ [DEBUG] ZIP extraction succeeded, executable present."
+  else
+    echo "❌ [ERROR] ZIP extracted, but $APP_NAME.app/Contents/MacOS/$APP_NAME not found!"
+    echo "[DEBUG] Directory listing after extraction:"
+    find "$TMP_EXTRACT_DIR" | sed 's/^/    /'
+    rm -rf "$TMP_EXTRACT_DIR"
+    exit 2
+  fi
+else
+  echo "❌ [ERROR] Failed to extract ZIP with ditto!"
+  echo "[DEBUG] Attempting to list ZIP contents:"
+  unzip -l "$ZIP_PATH" || echo "[ERROR] unzip failed"
+  rm -rf "$TMP_EXTRACT_DIR"
+  exit 2
+fi
+rm -rf "$TMP_EXTRACT_DIR"
 
 # 📡 Notarization (required for all production builds)
 echo "📡 Starting notarization process..."
@@ -229,11 +275,20 @@ rm -rf "$APPCAST_WORK"
 mkdir -p "$APPCAST_WORK"
 
 echo "🔗 Staging ZIP archives for appcast generation..."
-find "$RELEASES_DIR" -type f -name "*.zip" -exec ln -sf {} "$APPCAST_WORK/" \;
-
+echo "[DEBUG] Staging ZIP and delta archives with directory structure..."
+rsync -avm --include='*/' --include='*.zip' --include='*.delta' --exclude='*' "$RELEASES_DIR/" "$APPCAST_WORK/"
+echo "[DEBUG] Appcast workdir contents:"
+ls -la "$APPCAST_WORK"
+echo "[DEBUG] Running generate_appcast..."
 /opt/homebrew/Caskroom/sparkle/2.7.1/bin/generate_appcast "$APPCAST_WORK" \
-    --download-url-prefix "https://github.com/owengretzinger/meetingnotes/releases/download/v${VERSION}/" \
-    -o "appcast.xml"
+    --download-url-prefix "https://github.com/owengretzinger/meetingnotes/releases/download/" \
+    -o "appcast.xml" 2>&1 | tee "$BUILD_DIR/generate_appcast.log"
+
+if grep -q "Could not unarchive" "$BUILD_DIR/generate_appcast.log"; then
+  echo "❌ [ERROR] generate_appcast encountered unarchive failures!"
+  echo "   See log: $BUILD_DIR/generate_appcast.log"
+  exit 3
+fi
 
 echo "🚚 Moving generated delta files into version folder..."
 if compgen -G "$APPCAST_WORK/*.delta" > /dev/null; then
