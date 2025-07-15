@@ -33,6 +33,7 @@ struct MeetingDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteAlert = false
     @State private var isEditing = false
+    @State private var showCopyConfirmation = false
     
     init(meeting: Meeting) {
         self._viewModel = StateObject(wrappedValue: MeetingViewModel(meeting: meeting))
@@ -92,8 +93,7 @@ struct MeetingDetailView: View {
                                 .foregroundColor(viewModel.recordingState == .recording ? .red : .accentColor)
                             Text(viewModel.recordingButtonText)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
+                        .frame(minWidth: 110, minHeight: 36)
                         .background(viewModel.recordingState == .recording ? Color.red.opacity(0.1) : Color.accentColor.opacity(0.1))
                         .cornerRadius(8)
                     }
@@ -101,14 +101,21 @@ struct MeetingDetailView: View {
                     
                     Button(action: {
                         viewModel.copyCurrentTabContent()
+                        showCopyConfirmation = true
+                        
+                        // Reset confirmation after 2 seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            showCopyConfirmation = false
+                        }
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: "doc.on.doc")
-                            Text("Copy")
+                            Image(systemName: showCopyConfirmation ? "checkmark.circle.fill" : "doc.on.doc")
+                                .foregroundColor(showCopyConfirmation ? .green : .primary)
+                            Text(showCopyConfirmation ? "Copied!" : "Copy")
+                                .foregroundColor(showCopyConfirmation ? .green : .primary)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.gray.opacity(0.1))
+                        .frame(minWidth: 90, minHeight: 36)
+                        .background(showCopyConfirmation ? Color.green.opacity(0.1) : Color.gray.opacity(0.1))
                         .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
