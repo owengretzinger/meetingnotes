@@ -1,8 +1,8 @@
 <div align="center">
   <!-- REMOVE THIS IF YOU DON'T HAVE A LOGO -->
-    <img src="https://github.com/user-attachments/assets/aeb9bdb0-37da-4053-b1d3-85f9c447ec42" alt="Logo" width="80" height="80">
+    <img src="https://github.com/user-attachments/assets/de32601b-4b15-4cfd-b839-71b135d33f61" alt="Logo" width="80" height="80">
 
-<h3 align="center">Project Title</h3>
+<h3 align="center">Meetingnotes</h3>
 
   <p align="center">
     The Free, Open-Source AI Notetaker for Busy Engineers
