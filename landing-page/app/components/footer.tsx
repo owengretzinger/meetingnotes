@@ -54,14 +54,6 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a
-                  href="#how-it-works"
-                  className="hover:text-white transition-colors"
-                >
-                  How it Works
-                </a>
-              </li>
-              <li>
                 <button
                   onClick={downloadAndNavigate}
                   className="hover:text-white transition-colors text-left"
