@@ -62,26 +62,17 @@ export default function Hero() {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gray-900/50 rounded-xl p-8 border border-gray-800">
-            <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-600">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Demo Video</h3>
-                <p className="text-gray-400">See Meetingnotes in action</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-400 mt-4 text-center">
+          <div className="bg-gray-900/50 rounded-xl border border-gray-800 aspect-video overflow-hidden">
+            <iframe 
+              src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7350874922061033472?compact=1" 
+              allowFullScreen 
+              title="Embedded post"
+              className="w-[102%] h-[102%] -m-[1%]"
+            />
+          </div>
+            <p className="text-sm text-gray-400 text-center mt-4">
               Watch how Meetingnotes transcribes meetings and generates AI-enhanced notes in real-time
             </p>
-          </div>
         </div>
 
         {/* <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-gray-400">
