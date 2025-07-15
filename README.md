@@ -1,8 +1,96 @@
-Introducing Meetingnotes: the free, open-source AI notetaker for busy engineers.
+<div align="center">
+  <!-- REMOVE THIS IF YOU DON'T HAVE A LOGO -->
+    <img src="https://github.com/user-attachments/assets/aeb9bdb0-37da-4053-b1d3-85f9c447ec42" alt="Logo" width="80" height="80">
 
-- 100% free (bring your own OpenAI API key)
-- 100% privacy (all data stored on device)
-- 100% open source (please contribute)
+<h3 align="center">Project Title</h3>
+
+  <p align="center">
+    The Free, Open-Source AI Notetaker for Busy Engineers
+    <br />
+     <a href="https://github.com/owengretzinger/meetingnotes/releases/latest">Download for MacOS 14+</a>
+  </p>
+</div>
+
+<!-- REMOVE THIS IF YOU DON'T HAVE A DEMO -->
+<!-- TIP: You can alternatively directly upload a video up to 100MB by dropping it in while editing the README on GitHub. This displays a video player directly on GitHub instead of making it so that you have to click an image/link -->
+<div align="center">
+  <a href="https://meetingnotes.owengretzinger.com">
+    <img src="https://github.com/user-attachments/assets/f6e518a3-8fa2-46c3-ad04-597538c38425" alt="Landing Page">
+  </a>
+</div>
+
+<!--
+## Table of Contents
+
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#key-features">Key Features</a></li>
+      </ul>
+    </li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
+
+## About The Project
+
+Brief description of the project.
+
+### Key Features
+
+- **Feature 1:** ...
+- **Feature 2:** ...
+- ...
+
+## Architecture
+
+![Architecture Diagram](https://github.com/user-attachments/assets/75adc7aa-7719-4c4f-a9bb-3ba847e12e9f)
+
+(Insert the different technologies used in the project here — could split this into frontend, backend, etc)
+
+(Don't explain what well-known technologies like React are)
+
+## Getting Started
+
+### Prerequisites
+
+- Requirement 1
+- Requirement 2
+  ```sh
+  installation command (if applicable)
+  ```
+
+### Installation
+
+Instructions for cloning the repo, installing packages, configuring environment variables, etc:
+
+1. Step 1
+   ```sh
+   command
+   ```
+2. Step 2
+   ```sh
+   command
+   ```
+3. ...
+
+## Acknowledgments
+
+- This README was created using [gitreadme.dev](https://gitreadme.dev) — an AI tool that looks at your entire codebase to instantly generate high-quality README files.
+- (Only include unique things that you are sure should be specifically acknowledged. Don't include libraries or tools like React, Next.js, etc. Don't include services like Vercel, OpenAI, Google Cloud, JetBrains, etc. Stay on the safe side since more can be added later. Do not hallucinate.)
+
+-->
 
 ## Features
 
@@ -21,9 +109,6 @@ Implemented:
 - Text formatting
 - Different note templates
 - Integrate with Posthog for anonymous analytics (installs, opens, meetings created)
-
-Todo:
-
 - Onboarding screen to enable settings and set API key
 
 Later:
@@ -37,19 +122,13 @@ Later:
 
 ## Local Development
 
-Open the project in Xcode.
-
-For faster development builds, ensure `ONLY_ACTIVE_ARCH = YES` is set in your Debug configuration (this is already set by default). This builds only for your current architecture, speeding up compilation.
-
-For distribution builds that need to support both Intel and Apple Silicon Macs, the release process automatically uses `ONLY_ACTIVE_ARCH = NO` to create universal binaries.
+Open the project in Xcode. Command+R to build it and run it.
 
 ## Releasing a New Version
 
 Follow these steps to create a new release with auto-updates:
 
 ### Prerequisites
-
-<!-- - Apple Developer Account with valid certificates -->
 
 - Homebrew packages: `brew install create-dmg sparkle`
 - Make scripts executable: `chmod +x scripts/update_version.sh scripts/build_release.sh`
@@ -90,8 +169,8 @@ Follow these steps to create a new release with auto-updates:
    - Click "Create a new release"
    - Tag: `v1.0.1` (match the version number)
    - Title: `Meetingnotes v1.0.1`
-   - Upload the DMG from `releases/` folder
-   - Write release notes describing changes
+   - Upload the DMG and zip files from `releases/` folder
+   - Generate release notes
 
 4. **Update appcast:**
 
