@@ -34,6 +34,7 @@ struct TemplateEditView: View {
                         .foregroundColor(.secondary)
                     
                     TextEditor(text: $template.context)
+                        .padding(8)
                         .frame(minHeight: 100)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
@@ -81,6 +82,7 @@ struct TemplateEditView: View {
                                         .textFieldStyle(.roundedBorder)
                                     
                                     TextEditor(text: $template.sections[index].description)
+                                        .padding(8)
                                         .frame(minHeight: 60)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 8)

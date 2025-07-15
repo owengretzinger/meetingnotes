@@ -61,6 +61,7 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
 
                     TextEditor(text: $viewModel.settings.userBlurb)
+                        .padding(8)
                         .frame(minHeight: 100)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
@@ -89,6 +90,7 @@ struct SettingsView: View {
                     }
                     
                     TextEditor(text: $viewModel.settings.systemPrompt)
+                        .padding(8)
                         .frame(minHeight: 200)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
