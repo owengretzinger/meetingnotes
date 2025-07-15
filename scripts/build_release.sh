@@ -30,7 +30,7 @@ RELEASES_DIR="$(pwd)/releases"
 VERSION_DIR="${RELEASES_DIR}/v${VERSION}"
 mkdir -p "$VERSION_DIR"
 
-DMG_NAME="${APP_NAME}-${VERSION}.dmg"
+DMG_NAME="${APP_NAME}.dmg"
 ZIP_NAME="${APP_NAME}-${VERSION}.zip"
 # Absolute paths for the artifacts
 DMG_PATH="${VERSION_DIR}/${DMG_NAME}"

@@ -1,4 +1,7 @@
+"use client"
+
 import { Github, Twitter, Mail, Heart } from "lucide-react";
+import { downloadAndNavigate } from "@/lib/utils"
 
 export default function Footer() {
   return (
@@ -59,12 +62,12 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a
-                  href="/download"
-                  className="hover:text-white transition-colors"
+                <button
+                  onClick={downloadAndNavigate}
+                  className="hover:text-white transition-colors text-left"
                 >
                   Download
-                </a>
+                </button>
               </li>
               <li>
                 <a

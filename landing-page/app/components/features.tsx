@@ -75,11 +75,17 @@ export default function Features() {
         <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl p-8 border border-blue-600/30">
           <h3 className="text-2xl font-bold mb-4 text-center">Coming Soon</h3>
           <p className="text-gray-300 text-center mb-4">
-            Google Calendar integration, note templates, AI chat for questions,
-            and more integrations (email, Slack).
+            Google Calendar integration, AI chat for questions, and more
+            integrations (email, Slack).
           </p>
           <p className="text-blue-400 text-center font-semibold">
+            <a
+              href="https://github.com/owengretzinger/meetingnotes"
+              target="_blank"
+              className="text-blue-400 hover:text-blue-300 underline transition-colors"
+            >
             Contribute on GitHub to help build these features!
+            </a>  
           </p>
         </div>
       </div>

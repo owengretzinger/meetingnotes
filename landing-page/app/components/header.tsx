@@ -1,5 +1,8 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Github, Download } from "lucide-react"
+import { downloadAndNavigate } from "@/lib/utils"
 
 export default function Header() {
   return (
@@ -44,11 +47,9 @@ export default function Header() {
               <span className="hidden md:inline">Star</span>
             </a>
           </Button>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700" asChild>
-            <a href="/download">
-              <Download className="w-4 h-4 md:mr-2" />
-              <span className="hidden md:inline">Download</span>
-            </a>
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={downloadAndNavigate}>
+            <Download className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Download</span>
           </Button>
         </div>
       </div>

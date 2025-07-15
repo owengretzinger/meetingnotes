@@ -1,6 +1,9 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Download, Github, Star, Shield, Code, Zap } from "lucide-react"
+import { downloadAndNavigate } from "@/lib/utils"
 
 export default function Hero() {
   return (
@@ -19,7 +22,7 @@ export default function Hero() {
         </h1>
 
         <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-[52rem] mx-auto leading-relaxed">
-          Just you and your OpenAI API key.<br />Go crazy.
+          Just you and your OpenAI API key. <br className="block md:hidden" />Go crazy.
         </p>
 
         <div className="flex flex-wrap justify-center gap-6 mb-12">
@@ -41,11 +44,9 @@ export default function Hero() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4" asChild>
-            <a href="/download">
-              <Download className="w-5 h-5 mr-2" />
-              Download for macOS
-            </a>
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4" onClick={downloadAndNavigate}>
+            <Download className="w-5 h-5 mr-2" />
+            Download for macOS
           </Button>
           <Button
             variant="outline"
