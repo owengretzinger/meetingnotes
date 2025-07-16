@@ -10,11 +10,15 @@ import ScreenCaptureKit
 class AudioManager: NSObject, ObservableObject {
     @Published var transcriptChunks: [TranscriptChunk] = []
     @Published var isRecording = false
+    @Published var errorMessage: String?
     
     private var audioEngine = AVAudioEngine()
     private var micSocketTask: URLSessionWebSocketTask?
     private var systemSocketTask: URLSessionWebSocketTask?
     private let realtimeURL = URL(string: "wss://api.openai.com/v1/realtime?intent=transcription")!
+
+    // Unique identifier for the current recording session
+    private var sessionID = UUID()
     
     // ScreenCaptureKit properties
     private var stream: SCStream?
@@ -41,6 +45,14 @@ class AudioManager: NSObject, ObservableObject {
 
     func startRecording() {
         print("Starting recording...")
+        
+        // Bump session ID so any old async callbacks can be ignored
+        sessionID = UUID()
+
+        // Clear any previous errors
+        DispatchQueue.main.async {
+            self.errorMessage = nil
+        }
         
         // First ensure everything is stopped and cleaned up
         stopRecordingInternal()
@@ -76,9 +88,7 @@ class AudioManager: NSObject, ObservableObject {
         systemSocketTask = nil
         
         // Reset state
-        DispatchQueue.main.async {
-            self.isRecording = false
-        }
+        // (isRecording already cleared in stopRecording)
         
         print("Internal cleanup completed")
     }
@@ -238,6 +248,8 @@ class AudioManager: NSObject, ObservableObject {
     }
     
     func stopRecording() {
+        // Immediately mark as not recording to prevent stale callbacks
+        self.isRecording = false
         print("Stopping recording...")
         
         // Stop system audio capture
@@ -255,10 +267,6 @@ class AudioManager: NSObject, ObservableObject {
         micSocketTask = nil
         systemSocketTask?.cancel(with: .normalClosure, reason: nil)
         systemSocketTask = nil
-        
-        DispatchQueue.main.async {
-            self.isRecording = false
-        }
         
         print("Recording stopped")
     }
@@ -295,7 +303,11 @@ class AudioManager: NSObject, ObservableObject {
     
     private func connectToOpenAIRealtime(source: AudioSource) {
         guard let key = KeychainHelper.shared.getAPIKey(), !key.isEmpty else {
-            print("❌ No OpenAI key found")
+            let errorMsg = ErrorMessage.noAPIKey
+            print("❌ \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
             return
         }
 
@@ -305,7 +317,21 @@ class AudioManager: NSObject, ObservableObject {
         request.addValue("realtime=v1", forHTTPHeaderField: "OpenAI-Beta")
 
         let task = session.webSocketTask(with: request)
+        
+        // Add connection monitoring
         task.resume()
+        
+        let thisSession = sessionID
+        // Monitor connection state (ignore if session changed or recording stopped)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self, weak task] in
+            guard let self = self, self.sessionID == thisSession, self.isRecording else { return }
+            guard let task = task, task.state != .running else { return }
+            let errorMsg = ErrorMessage.connectionTimeout
+            print("❌ \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
+        }
 
         // Send initial configuration
         let config: [String: Any] = [
@@ -328,14 +354,29 @@ class AudioManager: NSObject, ObservableObject {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: config)
             if let jsonStr = String(data: jsonData, encoding: .utf8) {
-                task.send(.string(jsonStr)) { error in
+                task.send(.string(jsonStr)) { [weak self] error in
                     if let error = error {
-                        print("❌ Config send error: \(error)")
+                        guard let self = self, self.sessionID == thisSession else { return }
+
+                        // Ignore cancellation errors, which are expected when stopping a session.
+                        if (error as? URLError)?.code == .cancelled {
+                            return
+                        }
+
+                        let errorMsg = "\(ErrorMessage.configurationFailed): \(ErrorHandler.shared.handleError(error))"
+                        print("❌ \(errorMsg)")
+                        DispatchQueue.main.async {
+                            self.errorMessage = errorMsg
+                        }
                     }
                 }
             }
         } catch {
-            print("❌ Config JSON error: \(error)")
+            let errorMsg = "\(ErrorMessage.configurationFailed): \(ErrorHandler.shared.handleError(error))"
+            print("❌ \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
         }
 
         switch source {
@@ -345,11 +386,11 @@ class AudioManager: NSObject, ObservableObject {
             systemSocketTask = task
         }
 
-        receiveMessage(for: source)
+        receiveMessage(for: source, sessionID: thisSession)
         print("🌐 Connected to OpenAI Realtime (\(source))")
     }
 
-    private func receiveMessage(for source: AudioSource) {
+    private func receiveMessage(for source: AudioSource, sessionID: UUID) {
         let task: URLSessionWebSocketTask? = (source == .mic) ? micSocketTask : systemSocketTask
         task?.receive { [weak self] result in
             switch result {
@@ -362,18 +403,44 @@ class AudioManager: NSObject, ObservableObject {
                 @unknown default:
                     break
                 }
-                self?.receiveMessage(for: source) // continue loop
+                // Continue loop for this session
+                if let self = self, self.sessionID == sessionID {
+                    self.receiveMessage(for: source, sessionID: sessionID)
+                }
             case .failure(let error):
+                guard let self = self, self.sessionID == sessionID else { return } // Stale callback
+                // Ignore errors caused by intentional socket closure after recording stops
+                if self.isRecording == false { return }
+
+                let errorMsg = self.handleWebSocketError(error, source: source)
                 print("❌ Receive error (\(source)): \(error)")
-                // Attempt reconnect if still recording
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    if self?.isRecording == true {
-                        self?.connectToOpenAIRealtime(source: source)
+                
+                DispatchQueue.main.async {
+                    self.errorMessage = errorMsg
+                }
+                
+                // Only attempt reconnect for network errors, not API errors
+                if ErrorHandler.shared.shouldRetry(error) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                        guard let self = self, self.isRecording, self.sessionID == sessionID else { return }
+                        self.connectToOpenAIRealtime(source: source)
                     }
                 }
             }
         }
     }
+    
+    private func handleWebSocketError(_ error: Error, source: AudioSource) -> String {
+        // Check for WebSocket close codes first
+        if let closeCode = (error as NSError?)?.userInfo["closeCode"] as? Int {
+            return ErrorHandler.shared.handleWebSocketCloseCode(closeCode)
+        }
+        
+        // Use centralized error handler for all other errors
+        return ErrorHandler.shared.handleError(error)
+    }
+    
+
 
     private func parseRealtimeEvent(_ text: String, source: AudioSource) {
         guard let data = text.data(using: .utf8),
@@ -433,12 +500,19 @@ class AudioManager: NSObject, ObservableObject {
 
         let base64 = data.base64EncodedString()
         let message: [String: Any] = ["type": "input_audio_buffer.append", "audio": base64]
-
+        
+        let thisSession = self.sessionID
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: message)
             if let jsonStr = String(data: jsonData, encoding: .utf8) {
-                socket.send(.string(jsonStr)) { error in
+                socket.send(.string(jsonStr)) { [weak self] error in
                     if let error = error {
+                        guard let self = self, self.sessionID == thisSession else { return }
+
+                        // Ignore cancellation errors, which are expected when stopping recording.
+                        if (error as? URLError)?.code == .cancelled {
+                            return
+                        }
                         print("❌ Send error (\(source)): \(error)")
                     }
                 }
