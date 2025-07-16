@@ -275,13 +275,16 @@ rm -rf "$APPCAST_WORK"
 mkdir -p "$APPCAST_WORK"
 
 echo "🔗 Staging ZIP archives for appcast generation..."
-echo "[DEBUG] Staging ZIP and delta archives with directory structure..."
-rsync -avm --include='*/' --include='*.zip' --include='*.delta' --exclude='*' "$RELEASES_DIR/" "$APPCAST_WORK/"
+echo "[DEBUG] Staging all ZIP archives from all versions..."
+find "$RELEASES_DIR" -maxdepth 2 -type f -name "*.zip" -exec cp {} "$APPCAST_WORK"/ \;
+
+echo "[DEBUG] Staging all existing delta files to preserve them..."
+find "$RELEASES_DIR" -maxdepth 2 -type f -name "*.delta" -exec cp {} "$APPCAST_WORK"/ \;
+
 echo "[DEBUG] Appcast workdir contents:"
 ls -la "$APPCAST_WORK"
 echo "[DEBUG] Running generate_appcast..."
 /opt/homebrew/Caskroom/sparkle/2.7.1/bin/generate_appcast "$APPCAST_WORK" \
-    --download-url-prefix "https://github.com/owengretzinger/meetingnotes/releases/download/" \
     -o "appcast.xml" 2>&1 | tee "$BUILD_DIR/generate_appcast.log"
 
 if grep -q "Could not unarchive" "$BUILD_DIR/generate_appcast.log"; then
@@ -290,9 +293,60 @@ if grep -q "Could not unarchive" "$BUILD_DIR/generate_appcast.log"; then
   exit 3
 fi
 
-echo "🚚 Moving generated delta files into version folder..."
-if compgen -G "$APPCAST_WORK/*.delta" > /dev/null; then
-    mv "$APPCAST_WORK"/*.delta "$VERSION_DIR/"
+echo "🔧 Fixing download URLs in appcast.xml..."
+# Fix ZIP/DMG URLs to include version folder
+# Transform "https://github.com/.../download/Meetingnotes-1.0.3.zip" to "https://github.com/.../download/v1.0.3/Meetingnotes-1.0.3.zip"
+sed -i '' -E 's|url="([^"]*/download/)(Meetingnotes-([0-9]+\.[0-9]+\.[0-9]+)\.(zip\|dmg))"|url="\1v\3/\2"|g' appcast.xml
+
+# Fix delta URLs - they need to be in the version folder of the release they belong to
+# We'll need to parse the appcast to figure out which version each delta belongs to
+python3 << 'EOF'
+import xml.etree.ElementTree as ET
+import re
+
+# Parse the appcast
+tree = ET.parse('appcast.xml')
+root = tree.getroot()
+
+# Register namespace to preserve it in output
+ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
+
+# Process each item
+for item in root.findall('.//item'):
+    # Get the version for this item
+    version_elem = item.find('.//{http://www.andymatuschak.org/xml-namespaces/sparkle}shortVersionString')
+    if version_elem is not None:
+        version = version_elem.text
+        
+        # Fix all delta URLs within this item's sparkle:deltas section
+        deltas_elem = item.find('.//{http://www.andymatuschak.org/xml-namespaces/sparkle}deltas')
+        if deltas_elem is not None:
+            for enclosure in deltas_elem.findall('.//enclosure[@url]'):
+                url = enclosure.get('url')
+                if url and '.delta' in url:
+                    # Extract just the filename
+                    filename = url.split('/')[-1]
+                    # Set the correct URL with version folder
+                    new_url = f'https://github.com/owengretzinger/meetingnotes/releases/download/v{version}/{filename}'
+                    enclosure.set('url', new_url)
+
+# Write the fixed appcast
+tree.write('appcast.xml', encoding='UTF-8', xml_declaration=True)
+
+# Add back the standalone attribute
+with open('appcast.xml', 'r') as f:
+    content = f.read()
+content = content.replace('<?xml version=\'1.0\' encoding=\'UTF-8\'?>', '<?xml version="1.0" standalone="yes"?>')
+with open('appcast.xml', 'w') as f:
+    f.write(content)
+EOF
+
+echo "🚚 Moving only NEW delta files into version folder..."
+# Get the build number from the project
+BUILD_NUMBER=$(grep -m1 "CURRENT_PROJECT_VERSION" Meetingnotes.xcodeproj/project.pbxproj | sed 's/.*= \(.*\);/\1/')
+if compgen -G "$APPCAST_WORK/${APP_NAME}${BUILD_NUMBER}-"*.delta > /dev/null 2>&1; then
+    echo "[DEBUG] Moving new delta files for build $BUILD_NUMBER..."
+    mv "$APPCAST_WORK/${APP_NAME}${BUILD_NUMBER}-"*.delta "$VERSION_DIR/" 2>/dev/null || true
 fi
 
 rm -rf "$APPCAST_WORK"
