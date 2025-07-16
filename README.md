@@ -1,6 +1,6 @@
 <div align="center">
   <!-- REMOVE THIS IF YOU DON'T HAVE A LOGO -->
-    <img src="https://github.com/user-attachments/assets/de32601b-4b15-4cfd-b839-71b135d33f61" alt="Logo" width="80" height="80">
+    <img src="https://github.com/user-attachments/assets/309577e8-94db-431f-b8df-a53a763b4c87" alt="Logo" width="80" height="80">
 
 <h3 align="center">Meetingnotes</h3>
 
