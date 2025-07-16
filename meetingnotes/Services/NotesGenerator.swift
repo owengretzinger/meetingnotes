@@ -4,6 +4,12 @@
 import Foundation
 import OpenAI
 
+/// Result type for note generation streaming
+enum GenerationResult {
+    case content(String)
+    case error(String)
+}
+
 /// Generates meeting notes using OpenAI API
 class NotesGenerator {
     static let shared = NotesGenerator()
@@ -20,14 +26,26 @@ class NotesGenerator {
     func generateNotesStream(meeting: Meeting,
                             userBlurb: String,
                             systemPrompt: String,
-                            templateId: UUID? = nil) -> AsyncStream<String> {
+                            templateId: UUID? = nil) -> AsyncStream<GenerationResult> {
         
-        return AsyncStream<String>(String.self) { continuation in
+        return AsyncStream<GenerationResult>(GenerationResult.self) { continuation in
             Task {
                 do {
                     guard let apiKey = KeychainHelper.shared.getAPIKey(), !apiKey.isEmpty else {
+                        continuation.yield(.error(ErrorMessage.noAPIKey))
                         continuation.finish()
                         return
+                    }
+                    
+                    // Validate API key before proceeding
+                    let validationResult = await APIKeyValidator.shared.validateAPIKey(apiKey)
+                    switch validationResult {
+                    case .failure(let error):
+                        continuation.yield(.error(error.localizedDescription))
+                        continuation.finish()
+                        return
+                    case .success():
+                        break
                     }
                     
                     let openAI = OpenAI(apiToken: apiKey)
@@ -48,7 +66,14 @@ class NotesGenerator {
                     
                     // If no template content, use default
                     if templateContent.isEmpty {
-                        // No template content found, finish the stream
+                        continuation.yield(.error(ErrorMessage.noTemplate))
+                        continuation.finish()
+                        return
+                    }
+                    
+                    // Check if transcript is empty
+                    if meeting.formattedTranscript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        continuation.yield(.error(ErrorMessage.noTranscript))
                         continuation.finish()
                         return
                     }
@@ -75,13 +100,15 @@ class NotesGenerator {
                     
                     for try await result in stream {
                         if let content = result.choices.first?.delta.content {
-                            continuation.yield(content)
+                            continuation.yield(.content(content))
                         }
                     }
                     
                     continuation.finish()
                 } catch {
+                    let errorMessage = ErrorHandler.shared.handleError(error)
                     print("Error in streaming generation: \(error)")
+                    continuation.yield(.error(errorMessage))
                     continuation.finish()
                 }
             }

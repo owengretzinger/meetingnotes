@@ -98,6 +98,15 @@ class MeetingViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+        // Update error message when audio manager encounters errors
+        audioManager.$errorMessage
+            .compactMap { $0 }
+            .sink { [weak self] errorMessage in
+                self?.errorMessage = errorMessage
+                print("🚨 Audio Manager Error: \(errorMessage)")
+            }
+            .store(in: &cancellables)
+        
         // Auto-save when meeting properties change
         $meeting
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
@@ -143,7 +152,20 @@ class MeetingViewModel: ObservableObject {
     }
     
     func startRecording() {
-        audioManager.startRecording()
+        // Validate API key before starting recording
+        Task {
+            let validationResult = await APIKeyValidator.shared.validateCurrentAPIKey()
+            
+            switch validationResult {
+            case .success():
+                // Key is valid, proceed with recording
+                audioManager.startRecording()
+            case .failure(let error):
+                // Show error message
+                errorMessage = error.localizedDescription
+                print("❌ API key validation failed: \(error.localizedDescription)")
+            }
+        }
     }
     
     func stopRecording() {
@@ -176,6 +198,9 @@ class MeetingViewModel: ObservableObject {
         isGeneratingNotes = true
         errorMessage = nil
         
+        // Clear any audio manager errors as well
+        audioManager.errorMessage = nil
+        
         // Clear existing notes for streaming
         meeting.generatedNotes = ""
         
@@ -191,11 +216,23 @@ class MeetingViewModel: ObservableObject {
             templateId: selectedTemplateId
         )
         
-        for await chunk in stream {
-            meeting.generatedNotes += chunk
+        var hasError = false
+        for await result in stream {
+            switch result {
+            case .content(let chunk):
+                meeting.generatedNotes += chunk
+            case .error(let error):
+                errorMessage = error
+                hasError = true
+                print("🚨 Note Generation Error: \(error)")
+                break
+            }
         }
         
-        saveMeeting()
+        // Only save if there was no error
+        if !hasError {
+            saveMeeting()
+        }
         
         isGeneratingNotes = false
     }
