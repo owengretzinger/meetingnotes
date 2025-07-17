@@ -6,7 +6,7 @@ struct RenderedNotesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(text.split(separator: "\n"), id: \.self) { line in
+                ForEach(Array(text.split(separator: "\n").enumerated()), id: \.offset) { index, line in
                     self.renderLine(String(line))
                 }
             }
