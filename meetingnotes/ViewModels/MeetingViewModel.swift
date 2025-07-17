@@ -245,16 +245,6 @@ class MeetingViewModel: ObservableObject {
         }
     }
     
-    func copyTranscript() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(meeting.formattedTranscript, forType: .string)
-    }
-    
-    func copyNotes() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(meeting.generatedNotes, forType: .string)
-    }
-    
     func copyCurrentTabContent() {
         NSPasteboard.general.clearContents()
         
@@ -265,7 +255,22 @@ class MeetingViewModel: ObservableObject {
         case .transcript:
             content = meeting.formattedTranscript
         case .enhancedNotes:
-            content = meeting.generatedNotes
+            var enhancedContent = ""
+            
+            // Add title as h1 header if title is set
+            if !meeting.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                enhancedContent += "# \(meeting.title)\n\n"
+            }
+            
+            // Add the generated notes
+            enhancedContent += meeting.generatedNotes
+            
+            // Add attribution footer
+            if !enhancedContent.isEmpty {
+                enhancedContent += "\n\n---\n\nNotes generated using [Meetingnotes](https://meetingnotes.owengretzinger.com), the free, open source AI notetaker."
+            }
+            
+            content = enhancedContent
         }
         
         NSPasteboard.general.setString(content, forType: .string)
