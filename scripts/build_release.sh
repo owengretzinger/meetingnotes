@@ -330,6 +330,15 @@ for item in root.findall('.//item'):
                     new_url = f'https://github.com/owengretzinger/meetingnotes/releases/download/v{version}/{filename}'
                     enclosure.set('url', new_url)
 
+        # Fix the main enclosure URL (ZIP/DMG) to point to the GitHub release asset
+        main_enclosure = item.find('enclosure')
+        if main_enclosure is not None:
+            url = main_enclosure.get('url')
+            if url:
+                filename = url.split('/')[-1]
+                new_url = f'https://github.com/owengretzinger/meetingnotes/releases/download/v{version}/{filename}'
+                main_enclosure.set('url', new_url)
+
 # Write the fixed appcast
 tree.write('appcast.xml', encoding='UTF-8', xml_declaration=True)
 
