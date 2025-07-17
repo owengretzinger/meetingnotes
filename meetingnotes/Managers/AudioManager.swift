@@ -450,7 +450,9 @@ class AudioManager: NSObject, ObservableObject {
         switch type {
         case "conversation.item.input_audio_transcription.delta":
             if let delta = json["delta"] as? String {
-                DispatchQueue.main.async {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+
                     // Safely accumulate interim text for this source
                     self.currentInterim[source, default: ""] += delta
 
@@ -471,7 +473,9 @@ class AudioManager: NSObject, ObservableObject {
             }
         case "conversation.item.input_audio_transcription.completed":
             if let transcript = json["transcript"] as? String {
-                DispatchQueue.main.async {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+
                     // Remove any interim chunks for this source
                     self.transcriptChunks.removeAll { !$0.isFinal && $0.source == source }
 
