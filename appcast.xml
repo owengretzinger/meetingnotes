@@ -3,6 +3,20 @@
     <channel>
         <title>Meetingnotes</title>
         <item>
+            <title>1.0.5</title>
+            <pubDate>Thu, 17 Jul 2025 08:36:59 -0400</pubDate>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>1.0.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.5/Meetingnotes-1.0.5.zip" length="9519029" type="application/octet-stream" sparkle:edSignature="XBVJM2eh02aEQ6aNotS/3DNYXaOXA7956k/6GWEcfpcDVpJmUMDKcTIX0mtDWJl5YXin6YTA9qpIZDUJmkitBg==" />
+            <sparkle:deltas>
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.5/Meetingnotes10-9.delta" sparkle:deltaFrom="9" length="358186" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="WCLkjV3zZwBgy8QEpQVcvI8mLeZVVwHkYMCis3GROY+TlX3o9P12tJfB/Mb0bRI5MHaXgl+6PelbdBC2SLL9Dg==" />
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.5/Meetingnotes10-8.delta" sparkle:deltaFrom="8" length="2026862" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="wjQTre8hcYt6MS3gIXnXUpv+GnQ7tZALOAajn1jEgY7nNxk5P30v9qESknlDzLNCcOpb9iy/4aFTtv+aDqb1DQ==" />
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.5/Meetingnotes10-7.delta" sparkle:deltaFrom="7" length="2033094" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="hUqgwwoswcKVUOA4RUs8DVriGh4BXFXZ15gV2TSaCw8C4TX83qgrDVFa6ZjmpFPO23ck5+lY4chyfAzTFHq8Bw==" />
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.5/Meetingnotes10-6.delta" sparkle:deltaFrom="6" length="2026918" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="L8Y1rn8/8Kh7mVf9WNbYWIrXJo8jNtQ0MK14qWQ+PKzImSUc8nqVZ1uWgI7cClBRaPUhpqcL8CnWGWfI4BgQBg==" />
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.0.4</title>
             <pubDate>Wed, 16 Jul 2025 09:02:52 -0400</pubDate>
             <sparkle:version>9</sparkle:version>
