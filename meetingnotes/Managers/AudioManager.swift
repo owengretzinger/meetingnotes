@@ -29,6 +29,9 @@ class AudioManager: NSObject, ObservableObject {
     
     // Add current interim transcripts per source
     private var currentInterim: [AudioSource: String] = [.mic: "", .system: ""]
+    
+    // Add ping timers to keep WebSocket connections alive
+    private var pingTimers: [AudioSource: Timer] = [:]
 
     override init() {
         super.init()
@@ -86,6 +89,10 @@ class AudioManager: NSObject, ObservableObject {
         micSocketTask = nil
         systemSocketTask?.cancel(with: .normalClosure, reason: nil)
         systemSocketTask = nil
+        
+        // Invalidate ping timers
+        pingTimers.values.forEach { $0.invalidate() }
+        pingTimers.removeAll()
         
         // Reset state
         // (isRecording already cleared in stopRecording)
@@ -268,6 +275,10 @@ class AudioManager: NSObject, ObservableObject {
         systemSocketTask?.cancel(with: .normalClosure, reason: nil)
         systemSocketTask = nil
         
+        // Invalidate ping timers
+        pingTimers.values.forEach { $0.invalidate() }
+        pingTimers.removeAll()
+        
         print("Recording stopped")
     }
     
@@ -320,6 +331,22 @@ class AudioManager: NSObject, ObservableObject {
         
         // Add connection monitoring
         task.resume()
+        
+        // Set up ping timer to keep connection alive
+        pingTimers[source]?.invalidate()
+        let pingTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            let task = source == .mic ? self.micSocketTask : self.systemSocketTask
+            guard let socket = task, socket.state == .running else { return }
+            socket.sendPing { error in
+                if let error = error {
+                    print("❌ Ping failed for \(source): \(error)")
+                } else {
+                    print("🏓 Ping sent for \(source)")
+                }
+            }
+        }
+        pingTimers[source] = pingTimer
         
         let thisSession = sessionID
         // Monitor connection state (ignore if session changed or recording stopped)
