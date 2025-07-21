@@ -98,6 +98,16 @@ class ErrorHandler {
             }
         }
         
+        // Handle POSIX socket errors (e.g., "Socket is not connected")
+        if let nsError = error as NSError?, nsError.domain == NSPOSIXErrorDomain {
+            switch nsError.code {
+            case 57: // ENOTCONN - Socket is not connected
+                return true
+            default:
+                return false
+            }
+        }
+        
         // WebSocket close codes
         if let closeCode = (error as NSError?)?.userInfo["closeCode"] as? Int {
             return closeCode < 4000 // Only retry for non-API errors
