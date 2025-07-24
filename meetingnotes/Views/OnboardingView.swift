@@ -6,9 +6,12 @@ struct OnboardingView: View {
     @State private var apiKey = ""
     @State private var hasAcceptedTerms = false
     @State private var micPermissionGranted = false
-    @State private var screenPermissionGranted = false
+    @State private var systemAudioPermissionGranted = false
     @State private var showingPermissionAlert = false
     @State private var permissionAlertMessage = ""
+    
+    // Add AudioRecordingPermission instance
+    @State private var audioRecordingPermission = AudioRecordingPermission()
     
     var body: some View {
         GeometryReader { geometry in
@@ -31,10 +34,10 @@ struct OnboardingView: View {
                                 )
                                 
                                 PermissionRow(
-                                    title: "System Recording",
+                                    title: "System Audio Recording",
                                     description: "Required to transcribe what others say in meetings",
-                                    isGranted: screenPermissionGranted,
-                                    action: requestScreenPermission
+                                    isGranted: systemAudioPermissionGranted,
+                                    action: requestSystemAudioPermission
                                 )
                             }
                         }
@@ -155,11 +158,19 @@ struct OnboardingView: View {
             apiKey = settingsViewModel.settings.openAIKey
             hasAcceptedTerms = settingsViewModel.settings.hasAcceptedTerms
         }
+        .onChange(of: audioRecordingPermission.status) { oldValue, newValue in
+            // Update permission status when it changes
+            systemAudioPermissionGranted = (newValue == .authorized)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            // Re-check permissions when app becomes active (in case they were changed in System Settings)
+            checkPermissions()
+        }
     }
     
     private var canProceed: Bool {
         return micPermissionGranted && 
-               screenPermissionGranted && 
+               systemAudioPermissionGranted && 
                !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
                hasAcceptedTerms
     }
@@ -168,8 +179,8 @@ struct OnboardingView: View {
         // Check microphone permission using AVCaptureDevice (macOS compatible)
         micPermissionGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
         
-        // Check screen recording permission
-        screenPermissionGranted = CGPreflightScreenCaptureAccess()
+        // Check system audio recording permission
+        systemAudioPermissionGranted = (audioRecordingPermission.status == .authorized)
     }
     
     private func requestMicrophonePermission() {
@@ -184,12 +195,13 @@ struct OnboardingView: View {
         }
     }
     
-    private func requestScreenPermission() {
-        let success = CGRequestScreenCaptureAccess()
-        DispatchQueue.main.async {
-            screenPermissionGranted = success
-            if !success {
-                permissionAlertMessage = "System recording access is required to capture system audio. Please enable it in System Preferences > Security & Privacy > Privacy > Screen Recording."
+    private func requestSystemAudioPermission() {
+        audioRecordingPermission.request()
+        
+        // Show alert if permission is denied after request
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            if audioRecordingPermission.status == .denied {
+                permissionAlertMessage = "System audio recording access is required to capture what others say in meetings. Please enable 'meetingnotes' in System Preferences > Security & Privacy > Privacy > Microphone."
                 showingPermissionAlert = true
             }
         }

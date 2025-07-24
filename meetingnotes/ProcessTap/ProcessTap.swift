@@ -51,7 +51,7 @@ final class ProcessTap {
     init(target: TapTarget, muteWhenRunning: Bool = false) {
         self.target = target
         self.muteWhenRunning = muteWhenRunning
-        self.logger = Logger(subsystem: "codes.rambo.AudioCap", category: "\(String(describing: ProcessTap.self))(\(target.loggingProcessName))")
+        self.logger = Logger(subsystem: "owen.meetingnotes", category: "\(String(describing: ProcessTap.self))(\(target.loggingProcessName))")
     }
 
     @ObservationIgnored
@@ -327,7 +327,7 @@ final class ProcessTapRecorder {
         self.tapDisplayName = tap.displayName
         self.fileURL = fileURL
         self._tap = tap
-        self.logger = Logger(subsystem: "codes.rambo.AudioCap", category: "\(String(describing: ProcessTapRecorder.self))(\(fileURL.lastPathComponent))")
+        self.logger = Logger(subsystem: "owen.meetingnotes", category: "\(String(describing: ProcessTapRecorder.self))(\(fileURL.lastPathComponent))")
         
         self.icon = tap.target.iconImage
     }

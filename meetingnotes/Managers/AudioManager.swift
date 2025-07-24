@@ -5,6 +5,7 @@ import AVFoundation
 import Foundation
 import SwiftUI
 import OSLog
+import Combine
 
 /// Manages audio capture from microphone and system audio and handles real-time transcription via OpenAI
 @MainActor
@@ -29,6 +30,7 @@ class AudioManager: NSObject, ObservableObject {
     private let permission = AudioRecordingPermission()
     private let tapQueue = DispatchQueue(label: "io.meetingnotes.audiotap", qos: .userInitiated)
     private var isTapActive = false
+    private var isRestartingSystemTap = false
     
     // Add properties near the top, after existing private vars
     private var micRetryCount = 0
@@ -39,6 +41,7 @@ class AudioManager: NSObject, ObservableObject {
     
     // Add ping timers to keep WebSocket connections alive
     private var pingTimers: [AudioSource: Timer] = [:]
+    private var cancellables = Set<AnyCancellable>()
 
     override init() {
         super.init()
@@ -50,6 +53,19 @@ class AudioManager: NSObject, ObservableObject {
         
         // Activate the process controller to start monitoring audio-producing apps
         audioProcessController.activate()
+        
+        // When the list of running applications changes, check if we need to restart the system audio tap
+        NSWorkspace.shared.publisher(for: \.runningApplications)
+            .debounce(for: .seconds(1), scheduler: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self, self.isTapActive else { return }
+                
+                print("🎤 Running applications changed, checking if tap restart is needed.")
+                Task {
+                    await self.restartSystemAudioTapIfNeeded()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     deinit {
@@ -208,17 +224,16 @@ class AudioManager: NSObject, ObservableObject {
         print("✨ Fresh audio engine created")
     }
     
-    private func startSystemAudioTap() async {
-        print("🎧 Starting system audio tap...")
+    private func startSystemAudioTap(isRestart: Bool = false) async {
+        print(isRestart ? "🎧 Restarting system audio tap logic..." : "🎧 Starting system audio tap for the first time...")
         
-        // Ensure we have permission to record system audio. This might prompt the user.
-        guard await checkSystemAudioPermissions() else {
-            let errorMsg = "System audio recording permission denied."
-            print("❌ \(errorMsg)")
-            DispatchQueue.main.async {
+        if !isRestart {
+            guard await checkSystemAudioPermissions() else {
+                let errorMsg = "System audio recording permission denied."
+                print("❌ \(errorMsg)")
                 self.errorMessage = errorMsg
+                return
             }
-            return
         }
         
         // Get all running processes that are producing audio
@@ -236,9 +251,8 @@ class AudioManager: NSObject, ObservableObject {
         if let tapError = newTap.errorMessage {
             let errorMsg = "Failed to activate system audio tap: \(tapError)"
             print("❌ \(errorMsg)")
-            DispatchQueue.main.async {
-                self.errorMessage = errorMsg
-            }
+            self.errorMessage = errorMsg
+            if !isRestart { stopRecording() }
             return
         }
         
@@ -248,24 +262,73 @@ class AudioManager: NSObject, ObservableObject {
         // Start receiving audio data from the tap
         do {
             try startTapIO(newTap)
-            connectToOpenAIRealtime(source: .system)
-            print("✅ System audio tap started successfully")
             
-            DispatchQueue.main.async {
+            if !isRestart {
+                connectToOpenAIRealtime(source: .system)
                 self.isRecording = true
                 AudioLevelManager.shared.updateRecordingState(true)
             }
+            print("✅ System audio tap started successfully (isRestart: \(isRestart))")
+            
         } catch {
             let errorMsg = "Failed to start system audio tap IO: \(error.localizedDescription)"
             print("❌ \(errorMsg)")
-            DispatchQueue.main.async {
-                self.errorMessage = errorMsg
-            }
+            self.errorMessage = errorMsg
             newTap.invalidate()
             self.isTapActive = false
+            if !isRestart { stopRecording() }
         }
     }
     
+    private func restartSystemAudioTapIfNeeded() async {
+        let newProcessObjectIDs = Set(audioProcessController.processes.map { $0.objectID })
+        let currentProcessObjectIDs: Set<AudioObjectID>
+        
+        if case .systemAudio(let processObjectIDs) = self.processTap?.target {
+            currentProcessObjectIDs = Set(processObjectIDs)
+        } else {
+            currentProcessObjectIDs = []
+        }
+        
+        if newProcessObjectIDs != currentProcessObjectIDs {
+            print("Process list has changed. Restarting system audio tap.")
+            await restartSystemAudioTap()
+        } else {
+            print("Process list is the same. No restart needed.")
+        }
+    }
+
+    private func restartSystemAudioTap() async {
+        print("🔄 Restarting system audio tap...")
+
+        guard isRecording else {
+            print("Recording was stopped, aborting tap restart.")
+            return
+        }
+        
+        isRestartingSystemTap = true
+        defer { isRestartingSystemTap = false }
+        
+        // 1. Invalidate existing tap
+        if isTapActive {
+            processTap?.invalidate()
+            processTap = nil
+            isTapActive = false
+            print("System audio tap invalidated for restart.")
+        }
+        
+        // A small delay to let things settle.
+        try? await Task.sleep(for: .milliseconds(250))
+        
+        guard self.isRecording else {
+            print("Recording was stopped during tap restart. Aborting.")
+            return
+        }
+
+        // 2. Start a new one, but don't re-connect to OpenAI or change recording state
+        await startSystemAudioTap(isRestart: true)
+    }
+
     @MainActor
     private func checkSystemAudioPermissions() async -> Bool {
         if permission.status == .authorized {
@@ -325,9 +388,16 @@ class AudioManager: NSObject, ObservableObject {
             self.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .system)
             
         } invalidationHandler: { [weak self] _ in
+            guard let self else { return }
             print("Audio tap was invalidated.")
-            DispatchQueue.main.async {
-                self?.stopRecording()
+
+            if !self.isRestartingSystemTap {
+                DispatchQueue.main.async {
+                    print("Tap invalidated unexpectedly. Stopping recording.")
+                    self.stopRecording()
+                }
+            } else {
+                print("Tap invalidated as part of a restart. Not stopping recording.")
             }
         }
     }
