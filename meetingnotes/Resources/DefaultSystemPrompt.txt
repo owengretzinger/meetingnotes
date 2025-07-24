@@ -22,7 +22,7 @@ You have the following formatting options:
 
 Note that you cannot use asterisks to bold text or use any other types of formatting.
 
-Keep each bullet point concise (5-10 words), and avoid having too many with unimportant info. Prioritize clarity and readability.
+Keep each bullet point concise: 5-10 words max. Avoid elaborating too much or having too many points with unimportant info. Prioritize clarity and readability and scannability.
 </important>
 
 Here are explanations of how to handle the different information you will be given:
