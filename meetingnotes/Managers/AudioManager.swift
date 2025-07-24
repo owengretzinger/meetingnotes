@@ -4,9 +4,10 @@
 import AVFoundation
 import Foundation
 import SwiftUI
-import ScreenCaptureKit
+import OSLog
 
 /// Manages audio capture from microphone and system audio and handles real-time transcription via OpenAI
+@MainActor
 class AudioManager: NSObject, ObservableObject {
     @Published var transcriptChunks: [TranscriptChunk] = []
     @Published var isRecording = false
@@ -20,8 +21,12 @@ class AudioManager: NSObject, ObservableObject {
     // Unique identifier for the current recording session
     private var sessionID = UUID()
     
-    // ScreenCaptureKit properties
-    private var stream: SCStream?
+    // ProcessTap properties
+    private var processTap: ProcessTap?
+    private let audioProcessController = AudioProcessController()
+    private let permission = AudioRecordingPermission()
+    private let tapQueue = DispatchQueue(label: "io.meetingnotes.audiotap", qos: .userInitiated)
+    private var isTapActive = false
     
     // Add properties near the top, after existing private vars
     private var micRetryCount = 0
@@ -40,6 +45,9 @@ class AudioManager: NSObject, ObservableObject {
                                                queue: .main) { [weak self] _ in
             self?.handleAudioEngineConfigurationChange()
         }
+        
+        // Activate the process controller to start monitoring audio-producing apps
+        audioProcessController.activate()
     }
 
     deinit {
@@ -66,7 +74,7 @@ class AudioManager: NSObject, ObservableObject {
             self.startMicrophoneTap()
             // Start system audio capture asynchronously
             Task {
-                await self.startSystemAudioCapture()
+                await self.startSystemAudioTap()
             }
         }
     }
@@ -75,10 +83,11 @@ class AudioManager: NSObject, ObservableObject {
         print("Internal cleanup...")
         
         // Stop system audio capture
-        if let stream = stream {
-            stream.stopCapture()
-            self.stream = nil
-            print("System audio capture stopped")
+        if isTapActive {
+            self.processTap?.invalidate()
+            self.processTap = nil
+            isTapActive = false
+            print("System audio tap invalidated")
         }
         
         // Stop microphone capture
@@ -195,61 +204,112 @@ class AudioManager: NSObject, ObservableObject {
         print("✨ Fresh audio engine created")
     }
     
-    private func startSystemAudioCapture() async {
-        print("🎧 Starting system audio capture...")
+    private func startSystemAudioTap() async {
+        print("🎧 Starting system audio tap...")
         
+        // Ensure we have permission to record system audio. This might prompt the user.
+        guard await checkSystemAudioPermissions() else {
+            let errorMsg = "System audio recording permission denied."
+            print("❌ \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
+            return
+        }
+        
+        // Get all running processes that are producing audio
+        let allProcessObjectIDs = audioProcessController.processes.map { $0.objectID }
+        if allProcessObjectIDs.isEmpty {
+            print("⚠️ No audio-producing processes found. System audio tap might not capture anything.")
+        }
+        
+        // Configure the tap for system-wide audio
+        let target = TapTarget.systemAudio(processObjectIDs: allProcessObjectIDs)
+        let newTap = ProcessTap(target: target)
+        newTap.activate()
+        
+        // Check for activation errors
+        if let tapError = newTap.errorMessage {
+            let errorMsg = "Failed to activate system audio tap: \(tapError)"
+            print("❌ \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
+            return
+        }
+        
+        self.processTap = newTap
+        self.isTapActive = true
+        
+        // Start receiving audio data from the tap
         do {
-            // Request screen capture permission
-            let content = try await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: true)
-            
-            // Exclude self to avoid feedback
-            let excludedApps = content.applications.filter { app in
-                Bundle.main.bundleIdentifier == app.bundleIdentifier
-            }
-            
-            guard let display = content.displays.first else {
-                print("❌ No display found")
-                return
-            }
-            
-            // Create filter
-            let filter = SCContentFilter(display: display, excludingApplications: excludedApps, exceptingWindows: [])
-            
-            // Configure stream
-            let configuration = SCStreamConfiguration()
-            configuration.width = 2  // Minimal video settings
-            configuration.height = 2
-            configuration.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale.max)
-            configuration.capturesAudio = true
-            configuration.sampleRate = 48000
-            configuration.channelCount = 2
-            
-            // Create stream
-            let stream = SCStream(filter: filter, configuration: configuration, delegate: self)
-            
-            // Add stream output for audio processing
-            try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global(qos: .userInitiated))
-            // Add a minimal screen output so SCStream doesn't complain about missing video output
-            try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global(qos: .userInitiated))
-            
-            // Start capture
-            try await stream.startCapture()
-            
-            // Store reference
-            self.stream = stream
+            try startTapIO(newTap)
+            connectToOpenAIRealtime(source: .system)
+            print("✅ System audio tap started successfully")
             
             DispatchQueue.main.async {
                 self.isRecording = true
             }
-            
-            connectToOpenAIRealtime(source: .system)
-            print("✅ System audio capture started successfully")
-            
         } catch {
-            print("❌ Failed to start system audio capture: \(error)")
+            let errorMsg = "Failed to start system audio tap IO: \(error.localizedDescription)"
+            print("❌ \(errorMsg)")
+            DispatchQueue.main.async {
+                self.errorMessage = errorMsg
+            }
+            newTap.invalidate()
+            self.isTapActive = false
+        }
+    }
+    
+    @MainActor
+    private func checkSystemAudioPermissions() async -> Bool {
+        if permission.status == .authorized {
+            return true
+        }
+        
+        permission.request()
+        
+        // Poll for a short time to see if permission is granted
+        for _ in 0..<10 {
+            if permission.status == .authorized {
+                return true
+            }
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        }
+        
+        return permission.status == .authorized
+    }
+    
+    private func startTapIO(_ tap: ProcessTap) throws {
+        guard var streamDescription = tap.tapStreamDescription else {
+            throw NSError(domain: "AudioManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get audio format from tap."])
+        }
+
+        guard let format = AVAudioFormat(streamDescription: &streamDescription) else {
+            throw NSError(domain: "AudioManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create AVAudioFormat from tap."])
+        }
+
+        try tap.run(on: tapQueue) { [weak self] _, inInputData, _, _, _ in
+            guard let self = self,
+                  let buffer = AVAudioPCMBuffer(pcmFormat: format, bufferListNoCopy: inInputData, deallocator: nil) else {
+                return
+            }
+
+            let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16,
+                                           sampleRate: 24000,
+                                           channels: 1,
+                                           interleaved: false)!
+
+            guard let converter = AVAudioConverter(from: format, to: targetFormat) else {
+                return
+            }
             
-            if case SCStreamError.userDeclined = error {
-                print("📍 Permission denied. User needs to enable screen recording in System Settings.")
+            self.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .system)
+            
+        } invalidationHandler: { [weak self] _ in
+            print("Audio tap was invalidated.")
+            DispatchQueue.main.async {
+                self?.stopRecording()
             }
         }
     }
@@ -260,9 +320,11 @@ class AudioManager: NSObject, ObservableObject {
         print("Stopping recording...")
         
         // Stop system audio capture
-        if let stream = stream {
-            stream.stopCapture()
-            self.stream = nil
+        if isTapActive {
+            self.processTap?.invalidate()
+            self.processTap = nil
+            isTapActive = false
+            print("System audio tap invalidated")
         }
         
         // Stop microphone capture
@@ -556,45 +618,5 @@ class AudioManager: NSObject, ObservableObject {
     private func handleAudioEngineConfigurationChange() {
         print("🔔 Audio engine configuration changed - restarting mic")
         restartMicrophone()
-    }
-}
-
-// MARK: - SCStreamDelegate & SCStreamOutput
-extension AudioManager: SCStreamDelegate, SCStreamOutput {
-    func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
-        guard type == .audio else { return }
-        guard sampleBuffer.isValid else { return }
-        
-        // Convert CMSampleBuffer to AVAudioPCMBuffer
-        guard let pcmBuffer = sampleBuffer.asPCMBuffer else { return }
-        
-        // Create converter for OpenAI format
-        let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16,
-                                       sampleRate: 24000,
-                                       channels: 1,
-                                       interleaved: false)!
-        
-        guard let converter = AVAudioConverter(from: pcmBuffer.format, to: targetFormat) else { return }
-        
-        processAudioBuffer(pcmBuffer, converter: converter, targetFormat: targetFormat, source: .system)
-    }
-    
-    func stream(_ stream: SCStream, didStopWithError error: Error) {
-        print("❌ Stream stopped with error: \(error)")
-        DispatchQueue.main.async {
-            self.stream = nil
-            self.isRecording = false
-        }
-    }
-}
-
-// MARK: - CMSampleBuffer Extension
-extension CMSampleBuffer {
-    var asPCMBuffer: AVAudioPCMBuffer? {
-        try? self.withAudioBufferList { audioBufferList, _ -> AVAudioPCMBuffer? in
-            guard let absd = self.formatDescription?.audioStreamBasicDescription else { return nil }
-            guard let format = AVAudioFormat(standardFormatWithSampleRate: absd.mSampleRate, channels: absd.mChannelsPerFrame) else { return nil }
-            return AVAudioPCMBuffer(pcmFormat: format, bufferListNoCopy: audioBufferList.unsafePointer)
-        }
     }
 } 

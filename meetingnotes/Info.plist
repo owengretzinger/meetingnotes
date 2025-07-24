@@ -4,8 +4,8 @@
 <dict>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>Meetingnotes needs access to capture system audio for transcription.</string>
-	<key>NSScreenCaptureUsageDescription</key>
-	<string>Meetingnotes needs screen recording permission to capture system audio for transcription.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Meetingnotes needs access to your microphone for transcription.</string>
 	<key>SUFeedURL</key>
 	<string>https://raw.githubusercontent.com/owengretzinger/meetingnotes/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
