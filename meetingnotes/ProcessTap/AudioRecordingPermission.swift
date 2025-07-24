@@ -5,7 +5,7 @@ import OSLog
 /// Uses TCC SPI in order to check/request system audio recording permission.
 @Observable
 final class AudioRecordingPermission {
-    private let logger = Logger(subsystem: "codes.rambo.AudioCap", category: String(describing: AudioRecordingPermission.self))
+    private let logger = Logger(subsystem: "owen.meetingnotes", category: String(describing: AudioRecordingPermission.self))
 
     enum Status: String {
         case unknown
