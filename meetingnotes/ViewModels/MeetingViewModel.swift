@@ -106,6 +106,8 @@ class MeetingViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+
+        
         // Auto-save when meeting properties change
         $meeting
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
