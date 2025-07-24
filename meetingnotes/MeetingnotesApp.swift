@@ -36,9 +36,10 @@ struct MeetingnotesApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 800, minHeight: 600)
+                .frame(minWidth: 700, minHeight: 400)
         }
         .windowResizability(.contentSize)
+        .defaultSize(width: 1000, height: 600)
         .commands {
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updater: updaterController.updater)
