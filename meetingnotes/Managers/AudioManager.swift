@@ -12,6 +12,8 @@ class AudioManager: NSObject, ObservableObject {
     @Published var transcriptChunks: [TranscriptChunk] = []
     @Published var isRecording = false
     @Published var errorMessage: String?
+    @Published var micAudioLevel: Float = 0.0
+    @Published var systemAudioLevel: Float = 0.0
     
     private var audioEngine = AVAudioEngine()
     private var micSocketTask: URLSessionWebSocketTask?
@@ -155,15 +157,17 @@ class AudioManager: NSObject, ObservableObject {
                     return
                 }
                 
-                // Debug mic RMS
+                // Calculate audio level for visual indicator
                 if let ch = buffer.floatChannelData?[0] {
                     let frameCount = Int(buffer.frameLength)
                     let samples = UnsafeBufferPointer(start: ch, count: frameCount)
                     let rms = sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(frameCount))
-                    print("🎤 Mic RMS: \(rms)")
                     
-                    // Optional: Check for prolonged silence (e.g., RMS < threshold for multiple buffers)
-                    // But for now, just process
+                    // Update the published audio level on main thread
+                    DispatchQueue.main.async {
+                        self.micAudioLevel = rms
+                        AudioLevelManager.shared.updateMicLevel(rms)
+                    }
                 }
                 
                 self.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .mic)
@@ -249,6 +253,7 @@ class AudioManager: NSObject, ObservableObject {
             
             DispatchQueue.main.async {
                 self.isRecording = true
+                AudioLevelManager.shared.updateRecordingState(true)
             }
         } catch {
             let errorMsg = "Failed to start system audio tap IO: \(error.localizedDescription)"
@@ -304,6 +309,19 @@ class AudioManager: NSObject, ObservableObject {
                 return
             }
             
+            // Calculate audio level for visual indicator
+            if let ch = buffer.floatChannelData?[0] {
+                let frameCount = Int(buffer.frameLength)
+                let samples = UnsafeBufferPointer(start: ch, count: frameCount)
+                let rms = sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(frameCount))
+                
+                // Update the published audio level on main thread
+                DispatchQueue.main.async {
+                    self.systemAudioLevel = rms
+                    AudioLevelManager.shared.updateSystemLevel(rms)
+                }
+            }
+            
             self.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat, source: .system)
             
         } invalidationHandler: { [weak self] _ in
@@ -317,7 +335,14 @@ class AudioManager: NSObject, ObservableObject {
     func stopRecording() {
         // Immediately mark as not recording to prevent stale callbacks
         self.isRecording = false
+        AudioLevelManager.shared.updateRecordingState(false)
         print("Stopping recording...")
+        
+        // Reset audio levels
+        micAudioLevel = 0.0
+        systemAudioLevel = 0.0
+        AudioLevelManager.shared.updateMicLevel(0.0)
+        AudioLevelManager.shared.updateSystemLevel(0.0)
         
         // Stop system audio capture
         if isTapActive {
