@@ -280,7 +280,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_ASSET_PATHS = "\"meetingnotes/Preview Content\"";
 				DEVELOPMENT_TEAM = ML6HYR5LUR;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -294,7 +294,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 1.0.6;
+				MARKETING_VERSION = 1.1.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D ENABLE_TCC_SPI";
 				PRODUCT_BUNDLE_IDENTIFIER = owen.meetingnotes;
@@ -316,7 +316,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_ASSET_PATHS = "\"meetingnotes/Preview Content\"";
 				DEVELOPMENT_TEAM = ML6HYR5LUR;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -330,7 +330,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 1.0.6;
+				MARKETING_VERSION = 1.1.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D ENABLE_TCC_SPI";
 				PRODUCT_BUNDLE_IDENTIFIER = owen.meetingnotes;

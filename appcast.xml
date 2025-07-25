@@ -3,6 +3,21 @@
     <channel>
         <title>Meetingnotes</title>
         <item>
+            <title>1.1.0</title>
+            <pubDate>Fri, 25 Jul 2025 17:39:07 -0400</pubDate>
+            <sparkle:version>12</sparkle:version>
+            <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.1.0/Meetingnotes-1.1.0.zip" length="9715895" type="application/octet-stream" sparkle:edSignature="Htx9FYb58yGYIJc+xJd/W2PHgbjsVXY+TL2WsGa8gx4J4f0Uyk+1Uizl8c2lDC4+hIra+b9lIrjG6l69NjU4Cg==" />
+            <sparkle:deltas>
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.1.0/Meetingnotes12-11.delta" sparkle:deltaFrom="11" length="2319634" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="L2IQPoN19GQfVV8leQCCh4U7/1/Oe3SyclBWbT+58VFKI+FH3KGj2vZM1x+v3X3pmyPdSy/S0N9sg+B7jFSUBg==" />
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.1.0/Meetingnotes12-10.delta" sparkle:deltaFrom="10" length="2301554" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="+GKgyT7MBDTqot6SFnvQax1il9p3ZEDG5SWg0gCOwMkKPrp6v48GrJY/VAF8tow2RbeVY2Q2HP6DNVPTm1jeDQ==" />
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.1.0/Meetingnotes12-9.delta" sparkle:deltaFrom="9" length="2342546" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="lPAYUzZGPYYgb+UWGCv237QvKTH8l3jZVXxyXHsWOtYcDzuGRYiZ39eMYTAF9OMEKbvfm5vQiXXxu42CKnj3DA==" />
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.1.0/Meetingnotes12-8.delta" sparkle:deltaFrom="8" length="2940458" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="iL16jVnWBp5Ws/F1B8goazEcGCrrMK9XwH2imslbJiAWlwG5sXAaN2N8XHcHA7xuysQkway/R1vCONjmm/DaDg==" />
+                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.1.0/Meetingnotes12-7.delta" sparkle:deltaFrom="7" length="2923010" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="LQHXBknrE6nFFdpDW4ZWP9f/BBhU3PIUZ7DihMLh+Iu46/8cCv8vDaH7/doEJGoUfa1oEstYsWX0bCdHkKp9Cw==" />
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.0.6</title>
             <pubDate>Mon, 21 Jul 2025 16:21:51 -0400</pubDate>
             <sparkle:version>11</sparkle:version>
@@ -42,29 +57,6 @@
                 <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.4/Meetingnotes9-8.delta" sparkle:deltaFrom="8" length="2038454" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="AUNQbGbKk3a7Phzxfm1yEQQ6KuaqvX0NASF7u657DtdkcTbxvBqPBon/JKaZIEVtlnq+qDyjfcUpTY1S1Cj0Cw==" />
                 <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.4/Meetingnotes9-7.delta" sparkle:deltaFrom="7" length="2027690" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="+libxIpQFVA0lsctoJzmH8dNGCcHZLE8agqRKMzbCN1+fRA8Zq0hrvIAxvrpyCim1StmOtvh/zWKz+483SyJBw==" />
                 <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.4/Meetingnotes9-6.delta" sparkle:deltaFrom="6" length="2022146" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="LLFyZQK3TLSNvD8RCpQKNmKfefg8mp9Z7J1uw09zaYhahjSa+hV1jbzkSMIEG6P6ncBScBfmOrhhuimAG6OWBw==" />
-            </sparkle:deltas>
-        </item>
-        <item>
-            <title>1.0.3</title>
-            <pubDate>Tue, 15 Jul 2025 13:35:21 -0400</pubDate>
-            <sparkle:version>8</sparkle:version>
-            <sparkle:shortVersionString>1.0.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.3/Meetingnotes-1.0.3.zip" length="9475086" type="application/octet-stream" sparkle:edSignature="YPaFIk/x98RBfM8qgLMPVYtIRAqtrLZ1Bl8Z4amgG7rcLcKEhP9XeTQ0CTlNQcaTp9UOJjhbW50Qi1jUpieqCg==" />
-            <sparkle:deltas>
-                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.3/Meetingnotes8-7.delta" sparkle:deltaFrom="7" length="300426" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="wrGn8nljzn8rmi0K2XhcH8y+p0BTD6q3Hbtzsq0yQd3ynIjPqS2VieKYYvmlHKFtl8kZL39JwJEixsAuUs7DAw==" />
-                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.3/Meetingnotes8-6.delta" sparkle:deltaFrom="6" length="642614" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="0TSiWwSQR6ECWn8iX6OjLU693zDwoX9NDuX3mKDiELDgpYgx1nFuVxB7O0/O41pYyyzgMCbhDJ6VnbO3zWnbBw==" />
-            </sparkle:deltas>
-        </item>
-        <item>
-            <title>1.0.2</title>
-            <pubDate>Mon, 14 Jul 2025 21:33:29 -0400</pubDate>
-            <sparkle:version>7</sparkle:version>
-            <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.2/Meetingnotes-1.0.2.zip" length="9453364" type="application/octet-stream" sparkle:edSignature="N2KYxZ5WuId3x3lkhbX6MMlzl1eu3ZJdpN3y4w7ANYd1HMFKgURHbsXbTUn7lh1So2gAulMj2omRkT7oQ0o/Ag==" />
-            <sparkle:deltas>
-                <enclosure url="https://github.com/owengretzinger/meetingnotes/releases/download/v1.0.2/Meetingnotes7-6.delta" sparkle:deltaFrom="6" length="358238" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="864832" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,en" sparkle:edSignature="FtVwt5RO1qg2KP39D4XJy9JEucBsJsXujejMgRsyW8v4M0KNruGi0RbW+K1p7ds3c1b96XV7m4z4vQa128H6Bg==" />
             </sparkle:deltas>
         </item>
     </channel>
