@@ -3,6 +3,7 @@ import SwiftUI
 struct MeetingListView: View {
     @StateObject private var viewModel = MeetingListViewModel()
     @ObservedObject var settingsViewModel: SettingsViewModel
+    @StateObject private var recordingSessionManager = RecordingSessionManager.shared
     @State private var selectedMeeting: Meeting?
     @State private var navigationPath = NavigationPath()
     
@@ -113,7 +114,8 @@ struct MeetingListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
-                    .help("New Meeting")
+                    .disabled(recordingSessionManager.isRecording)
+                    .help(recordingSessionManager.isRecording ? "Cannot create new meeting while recording is active" : "New Meeting")
                 }
             }
             .navigationDestination(for: String.self) { path in
@@ -160,14 +162,21 @@ struct DayGroup {
 
 struct MeetingRowView: View {
     let meeting: Meeting
+    @StateObject private var recordingSessionManager = RecordingSessionManager.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             // Title or default
-            Text(meeting.title.isEmpty ? "Untitled meeting" : meeting.title)
-                .font(.headline)
-                .lineLimit(1)
-            
+            HStack(spacing: 4) {
+                if recordingSessionManager.isRecordingMeeting(meeting.id) {
+                    Image(systemName: "record.circle")
+                        .foregroundColor(.red)
+                        .font(.headline)
+                }
+                Text(meeting.title.isEmpty ? "Untitled meeting" : meeting.title)
+                    .font(.headline)
+                    .lineLimit(1)
+            }
             // Date
             HStack {
                 Text(meeting.date, style: .time)
@@ -213,6 +222,7 @@ struct CollapsedTranscriptChunkView: View {
 
 struct MeetingDetailContentView: View {
     @StateObject private var viewModel: MeetingViewModel
+    @StateObject private var recordingSessionManager = RecordingSessionManager.shared
     @State private var showDeleteAlert = false
     @State private var isEditing = false
     @State private var showCopyConfirmation = false
@@ -221,6 +231,12 @@ struct MeetingDetailContentView: View {
     init(meeting: Meeting, onDelete: @escaping () -> Void) {
         self._viewModel = StateObject(wrappedValue: MeetingViewModel(meeting: meeting))
         self.onDelete = onDelete
+    }
+    
+    // Computed property to determine if recording button should be disabled
+    private var cannotStartRecording: Bool {
+        // Disable if another meeting is recording (not this one)
+        return recordingSessionManager.isRecording && !recordingSessionManager.isRecordingMeeting(viewModel.meeting.id)
     }
     
     var body: some View {
@@ -272,15 +288,17 @@ struct MeetingDetailContentView: View {
                         viewModel.toggleRecording()
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: viewModel.recordingState == .recording ? "stop.circle.fill" : "record.circle")
-                                .foregroundColor(viewModel.recordingState == .recording ? .red : .accentColor)
+                            Image(systemName: viewModel.isRecording ? "stop.circle.fill" : "record.circle")
+                                .foregroundColor(viewModel.isRecording ? .red : .accentColor)
                             Text(viewModel.recordingButtonText)
                         }
                         .frame(minWidth: 110, minHeight: 36)
-                        .background(viewModel.recordingState == .recording ? Color.red.opacity(0.1) : Color.accentColor.opacity(0.1))
+                        .background(viewModel.isRecording ? Color.red.opacity(0.1) : Color.accentColor.opacity(0.1))
                         .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
+                    .disabled(cannotStartRecording)
+                    .help(cannotStartRecording ? "Another meeting is currently being recorded" : "Start or stop recording for this meeting")
                     
                     Button(action: {
                         viewModel.copyCurrentTabContent()
@@ -336,12 +354,6 @@ struct MeetingDetailContentView: View {
             Text("Are you sure you want to delete this meeting? This action cannot be undone.")
         }
         .onDisappear {
-            // Stop recording if it's in progress when leaving the page
-            if viewModel.isRecording {
-                print("🛑 Stopping recording because user is leaving the page")
-                viewModel.stopRecording()
-            }
-            
             // Auto-delete empty meetings when leaving, otherwise save
             viewModel.deleteIfEmpty()
         }

@@ -57,7 +57,7 @@ struct DancingAudioBars: View {
     
     private func getDancingBarHeight(index: Int, level: Float) -> CGFloat {
         let baseHeight: CGFloat = 4 // Flat when no audio
-        let maxHeight: CGFloat = 32 // Max dancing height
+        let maxHeight: CGFloat = 24 // Max dancing height
         
         if level > 0.03 { // Only dance when there's actual audio
             // Each bar responds to the same audio level but with different scaling

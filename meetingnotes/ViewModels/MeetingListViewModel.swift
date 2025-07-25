@@ -11,6 +11,7 @@ class MeetingListViewModel: ObservableObject {
     @Published var searchText: String = ""
     
     private var cancellables = Set<AnyCancellable>()
+    private let recordingSessionManager = RecordingSessionManager.shared
     
     // Computed property to filter meetings based on search text
     var filteredMeetings: [Meeting] {
