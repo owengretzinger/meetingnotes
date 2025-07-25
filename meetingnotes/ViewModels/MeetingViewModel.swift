@@ -23,6 +23,8 @@ class MeetingViewModel: ObservableObject {
     @Published var isGeneratingNotes = false
     @Published var errorMessage: String?
     @Published private var recordingStateChanged = false // Trigger SwiftUI updates
+    @Published var isValidatingKey = false // Indicates API key validation in progress
+    @Published var isStartingRecording = false // Indicates recording start in progress
     
     // Computed property that always uses the direct RecordingSessionManager check
     var isRecording: Bool {
@@ -86,6 +88,10 @@ class MeetingViewModel: ObservableObject {
         Publishers.CombineLatest(recordingSessionManager.$isRecording, recordingSessionManager.$activeMeetingId)
             .sink { [weak self] (isRecording, activeMeetingId) in
                 guard let self = self else { return }
+                // If recording started for this meeting, end starting state
+                if isRecording && activeMeetingId == self.meeting.id {
+                    self.isStartingRecording = false
+                }
                 // Toggle the dummy property to trigger SwiftUI re-render
                 self.recordingStateChanged.toggle()
             }
@@ -143,6 +149,8 @@ class MeetingViewModel: ObservableObject {
     }
     
     func toggleRecording() {
+        // Prevent duplicate actions while validating API key or starting recording
+        if isValidatingKey || isStartingRecording { return }
         // Use the same computed isRecording property for perfect consistency
         if isRecording {
             stopRecording()
@@ -153,9 +161,12 @@ class MeetingViewModel: ObservableObject {
     
     func startRecording() {
         // Validate API key before starting recording
+        isValidatingKey = true
+        isStartingRecording = true
         Task {
             let validationResult = await APIKeyValidator.shared.validateCurrentAPIKey()
-            
+            defer { isValidatingKey = false }
+
             switch validationResult {
             case .success():
                 // Key is valid, proceed with recording
@@ -163,6 +174,8 @@ class MeetingViewModel: ObservableObject {
             case .failure(let error):
                 // Show error message
                 errorMessage = error.localizedDescription
+                // Cancel starting if validation failed
+                isStartingRecording = false
                 print("❌ API key validation failed: \(error.localizedDescription)")
             }
         }
