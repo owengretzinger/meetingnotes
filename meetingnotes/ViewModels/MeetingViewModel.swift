@@ -289,6 +289,12 @@ class MeetingViewModel: ObservableObject {
     }
     
     func deleteMeeting() {
+        // If this meeting is currently being recorded, stop the recording first
+        if recordingSessionManager.isRecordingMeeting(meeting.id) {
+            print("🛑 Stopping recording for meeting being deleted: \(meeting.id)")
+            recordingSessionManager.stopRecording()
+        }
+        
         let success = LocalStorageManager.shared.deleteMeeting(meeting)
         if success {
             isDeleted = true
