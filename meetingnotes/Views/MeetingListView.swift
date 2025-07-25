@@ -297,7 +297,7 @@ struct MeetingDetailContentView: View {
                         .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
-                    .disabled(cannotStartRecording)
+                    .disabled(cannotStartRecording || viewModel.isValidatingKey || viewModel.isStartingRecording)
                     .help(cannotStartRecording ? "Another meeting is currently being recorded" : "Start or stop recording for this meeting")
                     
                     Button(action: {
