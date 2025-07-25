@@ -76,7 +76,7 @@ struct AudioLevelWindowView: View {
     @StateObject private var audioLevelManager = AudioLevelManager.shared
     
     var body: some View {
-        let micLevel = audioLevelManager.isRecording ? audioLevelManager.micAudioLevel * 40 : 0
+        let micLevel = audioLevelManager.isRecording ? audioLevelManager.micAudioLevel * 30 : 0
         let systemLevel = audioLevelManager.isRecording ? audioLevelManager.systemAudioLevel * 5 : 0
         return DancingAudioBars(
                 micLevel: micLevel,
@@ -124,42 +124,68 @@ class AudioLevelManager: ObservableObject {
     }
 }
 
-// MARK: - Audio Level Window Manager
+// MARK: - Audio Level Window Manager using NSPanel
 @MainActor
 class AudioLevelWindowManager: ObservableObject {
     static let shared = AudioLevelWindowManager()
     
-    private init() {}
+    private var audioLevelPanel: NSPanel?
+    
+    private init() {
+        setupPanel()
+    }
+    
+    private func setupPanel() {
+        let panelRect = NSRect(x: 0, y: 0, width: 60, height: 80)
+        
+        audioLevelPanel = NSPanel(
+            contentRect: panelRect,
+            styleMask: [.nonactivatingPanel, .borderless],
+            backing: .buffered,
+            defer: true
+        )
+        
+        guard let panel = audioLevelPanel else { return }
+        
+        // Configure panel properties inspired by the provided code
+        panel.level = .mainMenu
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.isFloatingPanel = true
+        panel.isMovableByWindowBackground = true
+        panel.hasShadow = true
+        panel.backgroundColor = .clear
+        panel.isOpaque = false
+        panel.identifier = NSUserInterfaceItemIdentifier("audio-levels")
+        
+        // Set up the SwiftUI hosting view
+        let hostingView = NSHostingView(rootView: AudioLevelWindowView())
+        hostingView.frame = panelRect
+        panel.contentView = hostingView
+        
+        // Position the panel in the top-right corner of the screen
+        if let screen = NSScreen.main {
+            let screenFrame = screen.visibleFrame
+            let panelFrame = NSRect(
+                x: screenFrame.maxX - panelRect.width - 20,
+                y: screenFrame.maxY - panelRect.height - 20,
+                width: panelRect.width,
+                height: panelRect.height
+            )
+            panel.setFrame(panelFrame, display: false)
+        }
+    }
     
     func showWindow() {
-        // Find the audio levels window and bring it to front
-        for window in NSApplication.shared.windows {
-            if window.identifier?.rawValue == "audio-levels" {
-                window.orderFront(nil)
-                window.level = .floating
-                window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
-                window.isMovableByWindowBackground = true
-                window.hasShadow = true
-                window.styleMask = [.borderless]
-                return
-            }
+        guard let panel = audioLevelPanel else {
+            setupPanel()
+            showWindow()
+            return
         }
         
-        // If window not found, post a notification to trigger opening
-        NotificationCenter.default.post(name: .openAudioLevelWindow, object: nil)
+        panel.orderFrontRegardless()
     }
     
     func hideWindow() {
-        // Find the audio levels window and hide it
-        for window in NSApplication.shared.windows {
-            if window.identifier?.rawValue == "audio-levels" {
-                window.orderOut(nil)
-                return
-            }
-        }
+        audioLevelPanel?.orderOut(nil)
     }
-}
-
-extension Notification.Name {
-    static let openAudioLevelWindow = Notification.Name("openAudioLevelWindow")
 } 

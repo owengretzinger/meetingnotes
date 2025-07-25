@@ -44,19 +44,7 @@ struct MeetingnotesApp: App {
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updater: updaterController.updater)
             }
-            // Hidden command group that handles audio level window notifications
-            CommandGroup(after: .windowArrangement) {
-                ShowAudioLevelsCommand()
-            }
         }
-        
-        // Floating Audio Level Window
-        Window("", id: "audio-levels") {
-            AudioLevelWindowView()
-        }
-        .windowStyle(.plain)
-        .windowResizability(.contentSize)
-        .defaultPosition(.trailing)
     }
 }
 
@@ -68,20 +56,5 @@ struct CheckForUpdatesView: View {
             updater.checkForUpdates()
         }
         .keyboardShortcut("u", modifiers: .command)
-    }
-}
-
-struct ShowAudioLevelsCommand: View {
-    @Environment(\.openWindow) private var openWindow
-    
-    var body: some View {
-        // Empty view - we only need this for the notification observer
-        EmptyView()
-            .onReceive(NotificationCenter.default.publisher(for: .openAudioLevelWindow)) { _ in
-                openWindow(id: "audio-levels")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    AudioLevelWindowManager.shared.showWindow()
-                }
-            }
     }
 }
