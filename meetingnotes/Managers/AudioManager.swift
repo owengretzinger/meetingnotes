@@ -10,6 +10,8 @@ import Combine
 /// Manages audio capture from microphone and system audio and handles real-time transcription via OpenAI
 @MainActor
 class AudioManager: NSObject, ObservableObject {
+    static let shared = AudioManager()
+    
     @Published var transcriptChunks: [TranscriptChunk] = []
     @Published var isRecording = false
     @Published var errorMessage: String?
@@ -43,7 +45,7 @@ class AudioManager: NSObject, ObservableObject {
     private var pingTimers: [AudioSource: Timer] = [:]
     private var cancellables = Set<AnyCancellable>()
 
-    override init() {
+    private override init() {
         super.init()
         NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange,
                                                object: audioEngine,

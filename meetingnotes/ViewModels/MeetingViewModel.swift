@@ -15,24 +15,26 @@ enum MeetingViewTab: String, CaseIterable {
     case enhancedNotes = "Enhanced Notes"
 }
 
-enum RecordingState {
-    case idle // Not recording, shows "Transcribe" or "Resume" based on transcript content
-    case recording // Recording, shows "Stop"
-}
+
 
 @MainActor
 class MeetingViewModel: ObservableObject {
     @Published var meeting: Meeting
     @Published var isGeneratingNotes = false
     @Published var errorMessage: String?
-    @Published var isRecording = false
+    @Published private var recordingStateChanged = false // Trigger SwiftUI updates
+    
+    // Computed property that always uses the direct RecordingSessionManager check
+    var isRecording: Bool {
+        return recordingSessionManager.isRecordingMeeting(meeting.id)
+    }
     @Published var selectedTab: MeetingViewTab = .transcript  // Default to transcript tab
-    @Published var recordingState: RecordingState = .idle
+
     @Published var isDeleted = false
     @Published var templates: [NoteTemplate] = []
     @Published var selectedTemplateId: UUID?
     
-    private let audioManager = AudioManager()
+    private let recordingSessionManager = RecordingSessionManager.shared
     private var cancellables = Set<AnyCancellable>()
     private var isNewMeeting = false
     
@@ -53,6 +55,8 @@ class MeetingViewModel: ObservableObject {
             print("🆕 Using provided meeting: \(meeting.id)")
             self.meeting = meeting
         }
+        
+
         
         // Detect if this is a new meeting based on content, not storage existence
         isNewMeeting = isEmpty
@@ -78,31 +82,38 @@ class MeetingViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // NEW: Seed the audio manager with any existing transcript chunks so the initial
-        // published value doesn't overwrite the saved transcript with an empty array.
-        audioManager.transcriptChunks = self.meeting.transcriptChunks
-        
-        // Update meeting transcript chunks when audio manager transcript chunks change
-        audioManager.$transcriptChunks
-            .sink { [weak self] newChunks in
-                self?.meeting.transcriptChunks = newChunks
+        // Trigger SwiftUI updates when recording state changes
+        Publishers.CombineLatest(recordingSessionManager.$isRecording, recordingSessionManager.$activeMeetingId)
+            .sink { [weak self] (isRecording, activeMeetingId) in
+                guard let self = self else { return }
+                // Toggle the dummy property to trigger SwiftUI re-render
+                self.recordingStateChanged.toggle()
             }
             .store(in: &cancellables)
         
-        // Update isRecording when audio manager recording state changes
-        audioManager.$isRecording
-            .sink { [weak self] isRecording in
-                self?.isRecording = isRecording
-                self?.updateRecordingState()
-            }
-            .store(in: &cancellables)
-        
-        // Update error message when audio manager encounters errors
-        audioManager.$errorMessage
+        // Update error message when recording session manager encounters errors
+        recordingSessionManager.$errorMessage
             .compactMap { $0 }
             .sink { [weak self] errorMessage in
                 self?.errorMessage = errorMessage
-                print("🚨 Audio Manager Error: \(errorMessage)")
+                print("🚨 Recording Session Manager Error: \(errorMessage)")
+            }
+            .store(in: &cancellables)
+        
+        // If currently recording this meeting, load live transcript chunks
+        if recordingSessionManager.isRecordingMeeting(meeting.id) {
+            self.meeting.transcriptChunks = recordingSessionManager.getTranscriptChunks(for: meeting.id)
+        }
+
+        // Listen to real-time transcript updates for this meeting if it's being recorded
+        recordingSessionManager.$activeRecordingTranscriptChunksUpdated
+            .dropFirst()
+            .sink { [weak self] updatedChunks in
+                guard let self = self else { return }
+                // Only update if this meeting is the active recording
+                if recordingSessionManager.isRecordingMeeting(self.meeting.id) {
+                    self.meeting.transcriptChunks = updatedChunks
+                }
             }
             .store(in: &cancellables)
         
@@ -117,37 +128,26 @@ class MeetingViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // Auto-start recording for empty meetings
-        if isNewMeeting {
-            print("🚀 Auto-starting recording for empty meeting")
-            startRecording()
-        }
+
     }
-    
-    private func updateRecordingState() {
-        if isRecording {
-            recordingState = .recording
-        } else {
-            recordingState = .idle
-        }
-    }
+
     
     var recordingButtonText: String {
-        switch recordingState {
-        case .idle:
+        // Use the same computed isRecording property for perfect consistency
+        if isRecording {
+            return "Stop"
+        } else {
             // Check if there's existing transcript content
             return meeting.transcriptChunks.isEmpty ? "Transcribe" : "Resume"
-        case .recording:
-            return "Stop"
         }
     }
     
     func toggleRecording() {
-        switch recordingState {
-        case .idle:
-            startRecording()
-        case .recording:
+        // Use the same computed isRecording property for perfect consistency
+        if isRecording {
             stopRecording()
+        } else {
+            startRecording()
         }
     }
     
@@ -159,7 +159,7 @@ class MeetingViewModel: ObservableObject {
             switch validationResult {
             case .success():
                 // Key is valid, proceed with recording
-                audioManager.startRecording()
+                recordingSessionManager.startRecording(for: meeting.id)
             case .failure(let error):
                 // Show error message
                 errorMessage = error.localizedDescription
@@ -169,7 +169,7 @@ class MeetingViewModel: ObservableObject {
     }
     
     func stopRecording() {
-        audioManager.stopRecording()
+        recordingSessionManager.stopRecording()
         saveMeeting()
         
         // Auto-generate notes if there's a transcript and no existing notes
@@ -197,9 +197,6 @@ class MeetingViewModel: ObservableObject {
     func generateNotes() async {
         isGeneratingNotes = true
         errorMessage = nil
-        
-        // Clear any audio manager errors as well
-        audioManager.errorMessage = nil
         
         // Clear existing notes for streaming
         meeting.generatedNotes = ""
@@ -287,7 +284,7 @@ class MeetingViewModel: ObservableObject {
     }
     
     func deleteIfEmpty() {
-        if isEmpty {
+        if isEmpty && !isRecording {
             print("🗑️ Auto-deleting empty meeting")
             deleteMeeting()
         } else {
