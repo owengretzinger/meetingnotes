@@ -84,17 +84,30 @@ class AudioManager: NSObject, ObservableObject {
         DispatchQueue.main.async {
             self.errorMessage = nil
         }
-        
-        // First ensure everything is stopped and cleaned up
+
+        // Stop any in-progress recording
         stopRecordingInternal()
-        
-        // Add a small delay to ensure cleanup is complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            // Start microphone capture in parallel with system audio
-            self.startMicrophoneTap()
-            // Start system audio capture asynchronously
-            Task {
-                await self.startSystemAudioTap()
+
+        // Validate API key and account status before connecting
+        Task {
+            let validationResult = await APIKeyValidator.shared.validateCurrentAPIKey()
+            switch validationResult {
+            case .failure(let error):
+                let errorMsg = error.localizedDescription
+                print("❌ API key validation failed: \(errorMsg)")
+                DispatchQueue.main.async {
+                    self.errorMessage = errorMsg
+                }
+            case .success:
+                // Proceed with taps after cleanup
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    // Start microphone capture
+                    self.startMicrophoneTap()
+                    // Start system audio capture asynchronously
+                    Task {
+                        await self.startSystemAudioTap()
+                    }
+                }
             }
         }
     }
@@ -629,9 +642,71 @@ class AudioManager: NSObject, ObservableObject {
 
 
     private func parseRealtimeEvent(_ text: String, source: AudioSource) {
+        // Parse JSON message
         guard let data = text.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let type = json["type"] as? String else { return }
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+
+        // Early error handling for any payload with "error" key
+        if let errorDict = json["error"] as? [String: Any] {
+            let errorType = errorDict["type"] as? String ?? "unknown_error"
+            let errorCode = errorDict["code"] as? String ?? ""
+            let errorMessage = errorDict["message"] as? String ?? "Unknown error occurred"
+            print("❌ OpenAI Realtime API Error (\(source)) - Type: \(errorType), Code: \(errorCode), Message: \(errorMessage)")
+
+            // Map common error codes to user-friendly messages
+            let userFriendlyMessage: String
+            switch errorCode {
+            case "insufficient_quota", "quota_exceeded":
+                userFriendlyMessage = ErrorMessage.insufficientFunds
+            case "invalid_api_key", "authentication_failed":
+                userFriendlyMessage = ErrorMessage.invalidAPIKey
+            case "rate_limit_exceeded":
+                userFriendlyMessage = ErrorMessage.rateLimited
+            case "server_error":
+                userFriendlyMessage = ErrorMessage.apiServerError
+            case "access_denied", "forbidden":
+                userFriendlyMessage = ErrorMessage.accessForbidden
+            default:
+                // Check if this is a transcription failure (often indicates insufficient funds)
+                if errorMessage.lowercased().contains("input transcription failed") ||
+                   errorMessage.lowercased().contains("transcription failed") {
+                    userFriendlyMessage = "\(errorMessage)\n\nNote: This error typically occurs when your OpenAI account has insufficient funds. Please check your account balance and add credits if needed."
+                } else {
+                    userFriendlyMessage = "Transcription error: \(errorMessage)"
+                }
+            }
+
+            DispatchQueue.main.async {
+                self.errorMessage = userFriendlyMessage
+                // Stop recording when transcription errors occur
+                if self.isRecording {
+                    self.stopRecording()
+                }
+            }
+            return
+        }
+
+        guard let type = json["type"] as? String else { return }
+      
+        // Check for general failure status in any event
+        if let status = json["status"] as? String, status == "failed" {
+            let itemId = json["item_id"] as? String ?? json["id"] as? String ?? "unknown"
+            print("❌ Event failed (\(source)): type=\(type), item=\(itemId)")
+            let errorMessage = "Transcription failed for \(type) (item: \(itemId))\n\nNote: This error typically occurs when your OpenAI account has insufficient funds. Please check your account balance and add credits if needed."
+            DispatchQueue.main.async {
+                self.errorMessage = errorMessage
+                // Stop recording when transcription errors occur
+                if self.isRecording {
+                    self.stopRecording()
+                }
+            }
+            return
+        }
+
+        // Debug logging for key events (can be removed later)
+        if type.contains("transcription") || type.contains("error") {
+            print("🔍 Event (\(source)): \(type) - \(String(data: data, encoding: .utf8) ?? "invalid")")
+        }
 
         switch type {
         case "conversation.item.input_audio_transcription.delta":
@@ -676,6 +751,46 @@ class AudioManager: NSObject, ObservableObject {
 
                     // Reset interim buffer for this source
                     self.currentInterim[source] = ""
+                }
+            } else if let status = json["status"] as? String, status == "failed" {
+                // Handle transcription failure (often due to insufficient credits)
+                let itemId = json["item_id"] as? String ?? "unknown"
+                print("❌ Transcription failed for item: \(itemId)")
+                let errorMessage = "Audio transcription failed for item: \(itemId)\n\nNote: This error typically occurs when your OpenAI account has insufficient funds. Please check your account balance and add credits if needed."
+                DispatchQueue.main.async {
+                    self.errorMessage = errorMessage
+                    // Stop recording when transcription errors occur
+                    if self.isRecording {
+                        self.stopRecording()
+                    }
+                }
+            }
+        case "error":
+            // This case is now handled by the early error handling above.
+            // If we reach here, it means the error was not caught by the early check.
+            // We can add specific handling for this case if needed, but for now,
+            // the early error handling covers it.
+            break
+        case "session.updated", "session.created":
+            // Log session events for debugging
+            print("📋 Session event (\(source)): \(type)")
+        case "response.done", "response.created":
+            // Log response events for debugging (these don't contain transcription data)
+            print("🔄 Response event (\(source)): \(type)")
+        case "rate_limits.updated":
+            // Log rate limit updates
+            if let rateLimits = json["rate_limits"] as? [[String: Any]] {
+                for limit in rateLimits {
+                    if let name = limit["name"] as? String,
+                       let remaining = limit["remaining"] as? Int,
+                       let total = limit["limit"] as? Int {
+                        print("📊 Rate limit (\(source)) - \(name): \(remaining)/\(total)")
+                        
+                        // Warn when approaching limits
+                        if name == "tokens" && remaining < 1000 {
+                            print("⚠️ Warning: Low token balance remaining: \(remaining)")
+                        }
+                    }
                 }
             }
         default:
