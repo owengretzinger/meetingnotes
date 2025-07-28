@@ -184,16 +184,6 @@ class MeetingViewModel: ObservableObject {
     func stopRecording() {
         recordingSessionManager.stopRecording()
         saveMeeting()
-        
-        // Auto-generate notes if there's a transcript and no existing notes
-        if !meeting.formattedTranscript.isEmpty && meeting.generatedNotes.isEmpty {
-            print("🤖 Auto-generating notes after recording stopped")
-            // Switch to enhanced notes tab immediately when starting generation
-            selectedTab = .enhancedNotes
-            Task {
-                await generateNotes()
-            }
-        }
     }
     
     func loadTemplates() {
