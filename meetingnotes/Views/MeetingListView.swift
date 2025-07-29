@@ -241,101 +241,113 @@ struct MeetingDetailContentView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Meeting Title with Menu
-            HStack {
-                TextField("Meeting Title", text: $viewModel.meeting.title)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .textFieldStyle(.plain)
-                
-                Spacer()
-                
-                // Ellipsis menu
-                Menu {
-                    Button("Delete Meeting", role: .destructive) {
-                        showDeleteAlert = true
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 12, height: 12)
-                        .foregroundColor(.secondary)
-                }
-                .labelStyle(.iconOnly)
-                .menuIndicator(.hidden)
-                .menuStyle(BorderlessButtonMenuStyle())
-                .frame(width: 20, height: 20)
-            }
-            .padding(.bottom, 10)
-            
-            // Controls Section
-            HStack {
-                // Left: Tab Toggles
-                Picker("", selection: $viewModel.selectedTab) {
-                    ForEach(MeetingViewTab.allCases, id: \.self) { tab in
-                        Text(tab.rawValue).tag(tab)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 260)
-                
-                Spacer()
-                
-                // Right: Generate and Recording Buttons
-                HStack(spacing: 12) {
-                    // Generate Button (Dropdown)
+
+            VStack(alignment: .leading, spacing: 8) {
+                // Meeting Title with Menu
+                HStack {
+                    TextField("Meeting Title", text: $viewModel.meeting.title)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .textFieldStyle(.plain)
+                    
+                    Spacer()
+                    
+                    // Ellipsis menu
                     Menu {
-                        ForEach(viewModel.templates) { template in
-                            Button(template.title) {
-                                viewModel.selectedTemplateId = template.id
-                                viewModel.selectedTab = .enhancedNotes
-                                isEditing = false
-                            }
+                        Button("Delete Meeting", role: .destructive) {
+                            showDeleteAlert = true
                         }
                     } label: {
-                        HStack(spacing: 4) {
-                            if viewModel.isGeneratingNotes {
-                                ProgressView()
-                                    .scaleEffect(0.4)
-                                    .frame(width: 12, height: 12)
-                            } else {
-                                Image(systemName: "sparkles")
-                                    .font(.caption)
-                            }
-                            Text("Generate")
-                        }
-                        .frame(minWidth: 110, minHeight: 36)
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(8)
+                        Image(systemName: "ellipsis")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                            .foregroundColor(.secondary)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(viewModel.meeting.transcript.isEmpty || viewModel.isGeneratingNotes || viewModel.isRecording || viewModel.isStartingRecording)
-                    .help("Generate enhanced notes using a template")
+                    .labelStyle(.iconOnly)
+                    .menuIndicator(.hidden)
+                    .menuStyle(BorderlessButtonMenuStyle())
+                    .frame(width: 20, height: 20)
+                }
+                .padding(.bottom, 10)
+                
+                // Controls Section
+                HStack {
+                    // Left: Tab Toggles
+                    Picker("", selection: $viewModel.selectedTab) {
+                        ForEach(MeetingViewTab.allCases, id: \.self) { tab in
+                            Text(tab.rawValue).tag(tab)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 260)
                     
-                    // Recording Button
-                    Button(action: {
-                        viewModel.toggleRecording()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: viewModel.isRecording ? "stop.circle.fill" : "record.circle")
-                                .foregroundColor(viewModel.isRecording ? .red : .accentColor)
-                            Text(viewModel.recordingButtonText)
+                    Spacer()
+                    
+                    // Right: Generate and Recording Buttons
+                    HStack(spacing: 8) {
+                        // Generate Button (Dropdown)
+                        Menu {
+                            ForEach(viewModel.templates) { template in
+                                Button(template.title) {
+                                    viewModel.selectedTemplateId = template.id
+                                    viewModel.selectedTab = .enhancedNotes
+                                    isEditing = false
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                if viewModel.isGeneratingNotes {
+                                    ProgressView()
+                                        .scaleEffect(0.4)
+                                        .frame(width: 12, height: 12)
+                                } else {
+                                    Image(systemName: "sparkles")
+                                        .font(.caption)
+                                }
+                                Text("Generate")
+                            }
+                            .frame(minWidth: 110, minHeight: 36)
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(8)
+                            .overlay(
+                                // Shimmer overlay when ready
+                                Group {
+                                    if viewModel.shouldAnimateGenerateButton {
+                                        ShimmerOverlay()
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    }
+                                }
+                            )
                         }
-                        .frame(minWidth: 110, minHeight: 36)
-                        .background(viewModel.isRecording ? Color.red.opacity(0.1) : Color.accentColor.opacity(0.1))
-                        .cornerRadius(8)
+                        .buttonStyle(.plain)
+                        .disabled(viewModel.meeting.transcript.isEmpty || viewModel.isGeneratingNotes || viewModel.isRecording || viewModel.isStartingRecording)
+                        .help("Generate enhanced notes using a template")
+                        
+                        // Recording Button
+                        Button(action: {
+                            viewModel.toggleRecording()
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: viewModel.isRecording ? "stop.circle.fill" : "record.circle")
+                                    .foregroundColor(viewModel.isRecording ? .red : .accentColor)
+                                Text(viewModel.recordingButtonText)
+                            }
+                            .frame(minWidth: 110, minHeight: 36)
+                            .background(viewModel.isRecording ? Color.red.opacity(0.1) : Color.accentColor.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(cannotStartRecording || viewModel.isValidatingKey || viewModel.isStartingRecording)
+                        .help(cannotStartRecording ? "Another meeting is currently being recorded" : "Start or stop recording for this meeting")
                     }
-                    .buttonStyle(.plain)
-                    .disabled(cannotStartRecording || viewModel.isValidatingKey || viewModel.isStartingRecording)
-                    .help(cannotStartRecording ? "Another meeting is currently being recorded" : "Start or stop recording for this meeting")
                 }
             }
             
             // Content Area with Tab-specific Headers
             VStack(alignment: .leading, spacing: 8) {
                 // Tab Header with Copy and Edit buttons
-                HStack {
+                HStack(spacing: 8) {
                     Text(viewModel.selectedTab.rawValue)
                         .font(.headline)
                         .foregroundColor(.secondary)
@@ -486,6 +498,35 @@ struct MeetingDetailContentView: View {
                     .frame(maxHeight: .infinity)
             }
         }
+    }
+}
+
+// MARK: - Shimmer Overlay
+struct ShimmerOverlay: View {
+    @State private var animate: Bool = false
+
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let height = geo.size.height
+            RoundedRectangle(cornerRadius: 8)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.clear, Color.green.opacity(0.1), Color.clear]),
+                        startPoint: UnitPoint(x: animate ? 2.5 : -1, y: 0.5),
+                        endPoint: UnitPoint(x: animate ? 3.5 : 0, y: 0.5)
+                    )
+                )
+                .frame(width: width, height: height)
+                .onAppear {
+                    animate = true
+                }
+                .animation(
+                    Animation.linear(duration: 1.5).repeatForever(autoreverses: false),
+                    value: animate
+                )
+        }
+        .allowsHitTesting(false)
     }
 }
 

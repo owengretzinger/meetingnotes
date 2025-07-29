@@ -26,6 +26,13 @@ class MeetingViewModel: ObservableObject {
     @Published var isValidatingKey = false // Indicates API key validation in progress
     @Published var isStartingRecording = false // Indicates recording start in progress
     
+    // Computed property to determine if Generate button should animate
+    var shouldAnimateGenerateButton: Bool {
+        let generateButtonEnabled = !meeting.transcript.isEmpty && !isGeneratingNotes && !isRecording && !isStartingRecording
+        let noEnhancedNotesYet = meeting.generatedNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return generateButtonEnabled && noEnhancedNotesYet
+    }
+    
     // Computed property that always uses the direct RecordingSessionManager check
     var isRecording: Bool {
         return recordingSessionManager.isRecordingMeeting(meeting.id)
