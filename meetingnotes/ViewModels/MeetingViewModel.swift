@@ -33,6 +33,11 @@ class MeetingViewModel: ObservableObject {
         return generateButtonEnabled && noEnhancedNotesYet
     }
     
+    // Computed property to determine if Transcribe button should animate
+    var shouldAnimateTranscribeButton: Bool {
+        return !isRecording && meeting.transcriptChunks.isEmpty && !isStartingRecording
+    }
+    
     // Computed property that always uses the direct RecordingSessionManager check
     var isRecording: Bool {
         return recordingSessionManager.isRecordingMeeting(meeting.id)
