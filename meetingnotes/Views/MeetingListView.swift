@@ -314,7 +314,7 @@ struct MeetingDetailContentView: View {
                                 // Shimmer overlay when ready
                                 Group {
                                     if viewModel.shouldAnimateGenerateButton {
-                                        ShimmerOverlay()
+                                        ShimmerOverlay(color: .green)
                                             .clipShape(RoundedRectangle(cornerRadius: 8))
                                     }
                                 }
@@ -336,6 +336,15 @@ struct MeetingDetailContentView: View {
                             .frame(minWidth: 110, minHeight: 36)
                             .background(viewModel.isRecording ? Color.red.opacity(0.1) : Color.accentColor.opacity(0.1))
                             .cornerRadius(8)
+                            .overlay(
+                                // Shimmer overlay when ready to transcribe
+                                Group {
+                                    if viewModel.shouldAnimateTranscribeButton {
+                                        ShimmerOverlay(color: .accentColor)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    }
+                                }
+                            )
                         }
                         .buttonStyle(.plain)
                         .disabled(cannotStartRecording || viewModel.isValidatingKey || viewModel.isStartingRecording)
@@ -504,6 +513,11 @@ struct MeetingDetailContentView: View {
 // MARK: - Shimmer Overlay
 struct ShimmerOverlay: View {
     @State private var animate: Bool = false
+    let color: Color
+    
+    init(color: Color = .green) {
+        self.color = color
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -512,7 +526,7 @@ struct ShimmerOverlay: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: [Color.clear, Color.green.opacity(0.1), Color.clear]),
+                        gradient: Gradient(colors: [Color.clear, color.opacity(0.1), Color.clear]),
                         startPoint: UnitPoint(x: animate ? 2.5 : -1, y: 0.5),
                         endPoint: UnitPoint(x: animate ? 3.5 : 0, y: 0.5)
                     )
