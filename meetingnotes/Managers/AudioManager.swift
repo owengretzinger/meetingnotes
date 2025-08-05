@@ -44,6 +44,9 @@ class AudioManager: NSObject, ObservableObject {
     // Add ping timers to keep WebSocket connections alive
     private var pingTimers: [AudioSource: Timer] = [:]
     private var cancellables = Set<AnyCancellable>()
+    
+    // Session refresh timers to prevent 30-minute expiry
+    private var sessionRefreshTimers: [AudioSource: Timer] = [:]
 
     private override init() {
         super.init()
@@ -135,6 +138,10 @@ class AudioManager: NSObject, ObservableObject {
         // Invalidate ping timers
         pingTimers.values.forEach { $0.invalidate() }
         pingTimers.removeAll()
+        
+        // Invalidate session refresh timers
+        sessionRefreshTimers.values.forEach { $0.invalidate() }
+        sessionRefreshTimers.removeAll()
         
         // Reset state
         // (isRecording already cleared in stopRecording)
@@ -407,9 +414,9 @@ class AudioManager: NSObject, ObservableObject {
             print("Audio tap was invalidated.")
 
             if !self.isRestartingSystemTap {
-                DispatchQueue.main.async {
-                    print("Tap invalidated unexpectedly. Stopping recording.")
-                    self.stopRecording()
+                print("Tap invalidated unexpectedly. Restarting system audio tap.")
+                Task {
+                    await self.restartSystemAudioTap()
                 }
             } else {
                 print("Tap invalidated as part of a restart. Not stopping recording.")
@@ -450,6 +457,10 @@ class AudioManager: NSObject, ObservableObject {
         // Invalidate ping timers
         pingTimers.values.forEach { $0.invalidate() }
         pingTimers.removeAll()
+        
+        // Invalidate session refresh timers
+        sessionRefreshTimers.values.forEach { $0.invalidate() }
+        sessionRefreshTimers.removeAll()
         
         print("Recording stopped")
     }
@@ -519,6 +530,15 @@ class AudioManager: NSObject, ObservableObject {
             }
         }
         pingTimers[source] = pingTimer
+        
+        // Set up session refresh timer to prevent 30-minute expiry (refresh after 28 minutes)
+        sessionRefreshTimers[source]?.invalidate()
+        let sessionRefreshTimer = Timer.scheduledTimer(withTimeInterval: 28 * 60.0, repeats: false) { [weak self] _ in
+            guard let self = self, self.isRecording else { return }
+            print("📝 Proactively refreshing session for \(source) to prevent expiry...")
+            self.connectToOpenAIRealtime(source: source)
+        }
+        sessionRefreshTimers[source] = sessionRefreshTimer
         
         let thisSession = sessionID
         // Monitor connection state (ignore if session changed or recording stopped)
@@ -614,15 +634,31 @@ class AudioManager: NSObject, ObservableObject {
                 let errorMsg = self.handleWebSocketError(error, source: source)
                 print("❌ Receive error (\(source)): \(error)")
                 
-                DispatchQueue.main.async {
-                    self.errorMessage = errorMsg
-                }
+                // Check if this is a session expiry - if so, don't show as persistent error
+                let isSessionExpiry = errorMsg == ErrorMessage.sessionExpired
                 
-                // Only attempt reconnect for network errors, not API errors
-                if ErrorHandler.shared.shouldRetry(error) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-                        guard let self = self, self.isRecording, self.sessionID == sessionID else { return }
-                        self.connectToOpenAIRealtime(source: source)
+                if isSessionExpiry {
+                    // For session expiry, show temporary message
+                    DispatchQueue.main.async {
+                        self.errorMessage = errorMsg
+                        // Clear the message after a few seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                            if self.errorMessage == errorMsg {
+                                self.errorMessage = nil
+                            }
+                        }
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = errorMsg
+                    }
+                    
+                    // Only attempt reconnect for network errors, not API errors
+                    if ErrorHandler.shared.shouldRetry(error) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                            guard let self = self, self.isRecording, self.sessionID == sessionID else { return }
+                            self.connectToOpenAIRealtime(source: source)
+                        }
                     }
                 }
             }
@@ -630,7 +666,21 @@ class AudioManager: NSObject, ObservableObject {
     }
     
     private func handleWebSocketError(_ error: Error, source: AudioSource) -> String {
-        // Check for WebSocket close codes first
+        // Check for session expiry in error description first
+        let errorDescription = error.localizedDescription.lowercased()
+        if errorDescription.contains("session hit the maximum duration") ||
+           errorDescription.contains("session expired") {
+            // Handle session expiry by automatically restarting the connection
+            print("📝 Session expired for \(source) (WebSocket error), attempting to restart connection...")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                guard let self = self, self.isRecording else { return }
+                self.connectToOpenAIRealtime(source: source)
+            }
+            // Return session expired message but don't stop recording
+            return ErrorMessage.sessionExpired
+        }
+        
+        // Check for WebSocket close codes
         if let closeCode = (error as NSError?)?.userInfo["closeCode"] as? Int {
             return ErrorHandler.shared.handleWebSocketCloseCode(closeCode)
         }
@@ -666,10 +716,51 @@ class AudioManager: NSObject, ObservableObject {
                 userFriendlyMessage = ErrorMessage.apiServerError
             case "access_denied", "forbidden":
                 userFriendlyMessage = ErrorMessage.accessForbidden
+            case "session_expired":
+                // Handle session expiry by automatically restarting the connection
+                print("📝 Session expired for \(source), attempting to restart connection...")
+                userFriendlyMessage = ErrorMessage.sessionExpired
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                    guard let self = self, self.isRecording else { return }
+                    self.connectToOpenAIRealtime(source: source)
+                }
+                // Show informational message but don't stop recording
+                DispatchQueue.main.async {
+                    self.errorMessage = userFriendlyMessage
+                    // Clear the message after a few seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                        if self.errorMessage == userFriendlyMessage {
+                            self.errorMessage = nil
+                        }
+                    }
+                }
+                return
             default:
+                // Check for session expiry in the error message
+                if errorMessage.lowercased().contains("session hit the maximum duration") ||
+                   errorMessage.lowercased().contains("session expired") {
+                    // Handle session expiry by automatically restarting the connection
+                    print("📝 Session expired for \(source), attempting to restart connection...")
+                    userFriendlyMessage = ErrorMessage.sessionExpired
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                        guard let self = self, self.isRecording else { return }
+                        self.connectToOpenAIRealtime(source: source)
+                    }
+                    // Show informational message but don't stop recording
+                    DispatchQueue.main.async {
+                        self.errorMessage = userFriendlyMessage
+                        // Clear the message after a few seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                            if self.errorMessage == userFriendlyMessage {
+                                self.errorMessage = nil
+                            }
+                        }
+                    }
+                    return
+                }
                 // Check if this is a transcription failure (often indicates insufficient funds)
-                if errorMessage.lowercased().contains("input transcription failed") ||
-                   errorMessage.lowercased().contains("transcription failed") {
+                else if errorMessage.lowercased().contains("input transcription failed") ||
+                        errorMessage.lowercased().contains("transcription failed") {
                     userFriendlyMessage = "\(errorMessage)\n\nNote: This error typically occurs when your OpenAI account has insufficient funds. Please check your account balance and add credits if needed."
                 } else {
                     userFriendlyMessage = "Transcription error: \(errorMessage)"

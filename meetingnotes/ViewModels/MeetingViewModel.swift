@@ -100,6 +100,7 @@ class MeetingViewModel: ObservableObject {
         Publishers.CombineLatest(recordingSessionManager.$isRecording, recordingSessionManager.$activeMeetingId)
             .sink { [weak self] (isRecording, activeMeetingId) in
                 guard let self = self else { return }
+                
                 // If recording started for this meeting, end starting state
                 if isRecording && activeMeetingId == self.meeting.id {
                     self.isStartingRecording = false
@@ -113,6 +114,12 @@ class MeetingViewModel: ObservableObject {
         recordingSessionManager.$errorMessage
             .compactMap { $0 }
             .sink { [weak self] errorMessage in
+                // Suppress non-critical, self-healing errors that should not distract the user
+                let lowercased = errorMessage.lowercased()
+                if errorMessage == ErrorMessage.sessionExpired || lowercased.contains("socket is not connected") {
+                    print("ℹ️ Suppressed non-critical error: \(errorMessage)")
+                    return
+                }
                 self?.errorMessage = errorMessage
                 print("🚨 Recording Session Manager Error: \(errorMessage)")
             }

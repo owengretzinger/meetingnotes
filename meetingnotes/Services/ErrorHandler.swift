@@ -198,4 +198,5 @@ enum ErrorMessage {
     static let requestTooLarge = "Request too large. Please try again."
     static let unsupportedData = "Unsupported data format. Please update the app."
     static let connectionLost = "Connection lost. Please try again."
+    static let sessionExpired = "Session expired and has been automatically renewed. Transcription will continue."
 }
