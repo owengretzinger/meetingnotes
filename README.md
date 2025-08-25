@@ -11,7 +11,7 @@
   </p>
 </div>
 
-## Hosted Meeting Bot API
+## Recall.ai - Meeting Transcription API
 
 Meetingnotes runs locally, capturing two streams: system & mic.
 
